@@ -1416,6 +1416,8 @@ input[type="range"]{direction:ltr}
         <div class="top-tools">
             <div class="live-indicator">
                 <span class="live-bar"></span>
+                <span>نظام المراقبة:</span>
+                <strong id="uiModeLabel">الوضع الذكي</strong>
             </div>
             <div class="tool-actions">
                 <div class="auth-user-area" id="authUserArea">
@@ -1424,6 +1426,8 @@ input[type="range"]{direction:ltr}
                         <span id="authUserName">حساب</span>
                     </span>
                 </div>
+                <button class="tool-btn" id="compactBtn" type="button">▦ واجهة مختصرة</button>
+                <button class="tool-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
                 <button class="tool-btn" id="authAccountBtnToolbar" type="button">👤 حساب</button>
             </div>
         </div>
@@ -1630,7 +1634,6 @@ input[type="range"]{direction:ltr}
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
-                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong>المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا بواسطة هذا التطبيق</div>
             </section>
 
             <section class="pro-card">
@@ -1652,7 +1655,7 @@ input[type="range"]{direction:ltr}
                 <div class="pro-card-title">🕘 سجل الجلسات</div>
                 <div class="pro-card-sub" id="historySourceLabel">محلي على جهازك</div>
             </div>
-            <div class="history-list" id="historyList"><div class="empty-history">لا توجد جلسات محفوظة</div></div>
+            <div class="history-list" id="historyList"><div class="empty-history">لا توجد جلسات محفوظة بعد.</div></div>
         </section>
 
         <!-- ====== ACCOUNT DATA DASHBOARD ====== -->
@@ -1667,7 +1670,11 @@ input[type="range"]{direction:ltr}
                 <div class="account-data-stat"><small>إجمالي التنبيهات</small><strong id="cloudAlertCount">0</strong></div>
                 <div class="account-data-stat"><small>متوسط الجلسة</small><strong id="cloudAverageSession">0د</strong></div>
             </div>
-
+            <div class="account-data-actions">
+                <button class="account-data-btn" id="refreshCloudDataBtn" type="button">↻ مزامنة البيانات</button>
+                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">حذف بيانات الجلسات من قاعدة البيانات</button>
+            </div>
+            <div class="account-data-note">🔒 لا يتم حفظ فيديو التتبع أو صور للوجه أو أي بيانات حساسة بواسطة التطبيق</div>
         </section>
 
         <!-- ====== QUICK GUIDE ====== -->
@@ -1685,7 +1692,7 @@ input[type="range"]{direction:ltr}
         </div>
 
         <div class="footnote">
-            تحيا الجزائر
+            • تحيا الجزائر •
         </div>
 
     </div>
