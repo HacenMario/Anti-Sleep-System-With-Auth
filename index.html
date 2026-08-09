@@ -969,11 +969,6 @@
             transform: translate(-50%, 0);
         }
 
-        .app.is-fullscreen {
-            max-width: none;
-            min-height: calc(100vh - 32px);
-        }
-
         body.compact-ui .feature-strip {
             display: none;
         }
@@ -1308,10 +1303,11 @@
         @media(max-width:400px){.account-data-grid{grid-template-columns:1fr 1fr}.account-data-stat strong{font-size:.9rem}}
 
         .auth-user-area{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+        .auth-user-area{direction:rtl;}
         .auth-btn{border:1px solid rgba(96,165,250,.22);background:rgba(26,35,50,.72);color:var(--text-primary);border-radius:10px;min-height:34px;padding:6px 11px;cursor:pointer;font-size:.76rem;font-weight:800;transition:var(--transition)}
         .auth-btn:hover{transform:translateY(-1px);border-color:rgba(96,165,250,.48);background:rgba(59,130,246,.11)}
         .auth-user-badge{display:none;align-items:center;gap:7px;padding:6px 9px;border-radius:10px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.16);color:#a7f3d0;font-size:.68rem;font-weight:800}
-        .auth-user-badge.show{display:inline-flex}
+        .auth-user-badge.show{display:inline-flex}.auth-user-name{max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
         .auth-user-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-green);box-shadow:0 0 10px rgba(52,211,153,.45)}
         .auth-modal{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,7,18,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
         .auth-modal.show{display:flex}
@@ -1397,8 +1393,13 @@ input[type="range"]{direction:ltr}
                 <strong id="uiModeLabel">الوضع الذكي</strong>
             </div>
             <div class="tool-actions">
+                <div class="auth-user-area" id="authUserArea">
+                    <span class="auth-user-badge" id="authUserBadge">
+                        <span class="auth-user-dot"></span>
+                        <span id="authUserName">حساب</span>
+                    </span>
+                </div>
                 <button class="tool-btn" id="compactBtn" type="button">▦ واجهة مختصرة</button>
-                <button class="tool-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
                 <button class="tool-btn" id="authAccountBtnToolbar" type="button">👤 حساب</button>
             </div>
         </div>
@@ -1606,7 +1607,7 @@ input[type="range"]{direction:ltr}
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
-                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى خادم بواسطة هذا التطبيق.</div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى قاعدة البيانات بواسطة هذا التطبيق</div>
             </section>
 
             <section class="pro-card">
@@ -1661,7 +1662,7 @@ input[type="range"]{direction:ltr}
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
         <div class="footnote">
-            Anti Sleep System • MADOUNINE Hacene • تحيا الجزائر
+            Anti Sleep System • by MADOUNINE Hacene • تحيا الجزائر
         </div>
     </div>
 
@@ -1715,7 +1716,6 @@ input[type="range"]{direction:ltr}
 
             // UI enhancement elements (do not affect detection algorithm)
             const compactBtn = document.getElementById('compactBtn');
-            const fullscreenBtn = document.getElementById('fullscreenBtn');
             const toast = document.getElementById('toast');
             const uiModeLabel = document.getElementById('uiModeLabel');
 
@@ -1734,44 +1734,6 @@ input[type="range"]{direction:ltr}
                 toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
             }
 
-            function setFullscreen() {
-                const app = document.querySelector('.app');
-                if (!document.fullscreenElement) {
-                    const request = app && app.requestFullscreen ? app.requestFullscreen() : null;
-                    if (request && typeof request.catch === 'function') request.catch(() => {});
-                } else if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(() => {});
-                }
-            }
-
-            function syncFullscreenUI() {
-                const active = !!document.fullscreenElement;
-                if (fullscreenBtn) {
-                    fullscreenBtn.textContent = active ? '⤢ إنهاء الشاشة الكاملة' : '⛶ ملء الشاشة';
-                }
-                document.querySelector('.app')?.classList.toggle('is-fullscreen', active);
-            }
-
-            compactBtn?.addEventListener('click', () => {
-                document.body.classList.toggle('compact-ui');
-                const compact = document.body.classList.contains('compact-ui');
-                compactBtn.textContent = compact ? '▦ واجهة كاملة' : '▦ واجهة مختصرة';
-                uiModeLabel.textContent = compact ? 'الوضع المختصر' : 'الوضع الذكي';
-                showToast(compact ? 'تم تفعيل الواجهة المختصرة' : 'تمت استعادة الواجهة الكاملة');
-            });
-
-            fullscreenBtn?.addEventListener('click', setFullscreen);
-            document.addEventListener('fullscreenchange', syncFullscreenUI);
-
-            window.addEventListener('keydown', (event) => {
-                if (event.key === 'F11') {
-                    event.preventDefault();
-                    setFullscreen();
-                }
-                if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
-                    compactBtn?.click();
-                }
-            });
 
             // ============================================================
             //  STATE
