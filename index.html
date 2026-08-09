@@ -1396,7 +1396,7 @@
                         <span>Driver Monitoring Mode</span>
                     </div>
                     <p class="driver-mode-sub">
-                        يمنع إطفاء الشاشة تلقائياً أثناء المراقبة عند تفعيل الوضع.
+                        يمنع إطفاء الشاشة تلقائياً أثناء المراقبة عند تفعيل الوضع
                     </p>
                 </div>
 
@@ -1432,22 +1432,22 @@
             <div class="feature-card">
                 <span class="feature-icon">🧠</span>
                 <span class="feature-title">تحليل ذكي</span>
-                <span class="feature-desc">FaceMesh لتحليل نقاط الوجه ومراقبة العين بشكل لحظي.</span>
+                <span class="feature-desc">FaceMesh لتحليل نقاط الوجه ومراقبة العين بشكل لحظي</span>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">👁️</span>
                 <span class="feature-title">مراقبة EAR</span>
-                <span class="feature-desc">عرض نسبة العين والمسافة العمودية لمتابعة الإغلاق.</span>
+                <span class="feature-desc">عرض نسبة العين والمسافة العمودية لمتابعة الإغلاق</span>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">🔊</span>
                 <span class="feature-title">إنذار فوري</span>
-                <span class="feature-desc">تنبيه صوتي ومرئي عند تجاوز حد الإغلاق المحدد.</span>
+                <span class="feature-desc">تنبيه صوتي ومرئي عند تجاوز حد الإغلاق المحدد</span>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">📊</span>
                 <span class="feature-title">إحصائيات الجلسة</span>
-                <span class="feature-desc">عدد الإغلاقات والإنذارات والمتوسط وأطول مدة.</span>
+                <span class="feature-desc">عدد الإغلاقات والإنذارات والمتوسط وأطول مدة</span>
             </div>
         </div>
 
@@ -1556,7 +1556,7 @@
                     <div class="quality-ring" id="qualityRing"><strong id="qualityPercent">0%</strong></div>
                     <div class="quality-text">
                         <strong id="qualityLabel">في انتظار الكاميرا</strong>
-                        <span id="qualityDetail">ابدأ النظام للحصول على تقييم التتبع.</span>
+                        <span id="qualityDetail">ابدأ النظام للحصول على تقييم التتبع</span>
                     </div>
                 </div>
                 <div class="mini-progress"><i id="qualityProgress"></i></div>
@@ -1590,7 +1590,7 @@
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
-                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى خادم بواسطة هذا التطبيق.</div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى خادم بواسطة هذا التطبيق</div>
             </section>
 
             <section class="pro-card">
@@ -1631,13 +1631,13 @@
                 <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">حذف بياناتي من قاعدة البيانات</button>
             </div>
             <div class="cloud-sync-status" id="cloudSyncStatus">☁️ سجّل الدخول لمزامنة الجلسات</div>
-            <div class="account-data-note">🔒 تُحفظ فقط مدة الجلسة وعدد التنبيهات وزمنها وحالة إكمال الجلسة. لا يتم إرسال الكاميرا أو الفيديو أو صور الوجه أو Face Landmarks أو الصوت إلى قاعدة البيانات.</div>
+            <div class="account-data-note">🔒لا تحفظ أي بيانات حساسة (فيديو التتبع أو صور الوجه) في قاعدة البيانات</div>
         </section>
 
         <!-- ====== QUICK GUIDE ====== -->
         <div class="quick-guide">
             <div class="quick-guide-text">
-                <strong>نصيحة:</strong> ضع الوجه أمام الكاميرا بإضاءة جيدة وحافظ على مسافة مناسبة للحصول على تتبع أكثر استقراراً.
+                <strong>نصيحة:</strong> ضع الوجه أمام الكاميرا بإضاءة جيدة وحافظ على مسافة مناسبة للحصول على تتبع أكثر استقراراً
             </div>
             <div class="privacy-badge">قد بحذر من فضلك، عائلتك في إنتظارك</div>
         </div>
@@ -2315,10 +2315,10 @@ function updateQuality(){
     if(ring) ring.style.background=`conic-gradient(var(--accent-green) ${score*3.6}deg,rgba(148,163,200,.12) ${score*3.6}deg)`;
     $('qualityPercent').textContent=score+'%';
     $('qualityProgress').style.width=score+'%';
-    let label='في انتظار الكاميرا',detail='ابدأ النظام للحصول على تقييم التتبع.';
-    if(score>=85){label='ممتاز';detail='الوجه والعينان قيد التتبع بشكل مستقر.'}
-    else if(score>=55){label='جيد';detail='التتبع يعمل، حاول الحفاظ على إضاءة ومسافة ثابتة.'}
-    else if(running){label='يحتاج تحسين';detail='ضع الوجه داخل الإطار وتأكد من الإضاءة.'}
+    let label='في انتظار الكاميرا',detail='ابدأ النظام للحصول على تقييم التتبع';
+    if(score>=85){label='ممتاز';detail='الوجه والعينان قيد التتبع بشكل مستقر'}
+    else if(score>=55){label='جيد';detail='التتبع يعمل، حاول الحفاظ على إضاءة ومسافة ثابتة'}
+    else if(running){label='يحتاج تحسين';detail='ضع الوجه داخل الإطار وتأكد من الإضاءة'}
     $('qualityLabel').textContent=label;$('qualityDetail').textContent=detail;
     setHealth('cameraHealth',running?'متصل':'جاهز',running?'ok':'');
     setHealth('faceHealth',hasFace?'مكتشف':'انتظار',hasFace?'ok':'warn');
