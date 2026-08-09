@@ -696,12 +696,10 @@
             box-shadow: 0 0 0 5px rgba(52,211,153,.08), 0 0 14px rgba(52,211,153,.45);
         }
 
-        .tool-actions { display:flex; gap:7px; align-items:center; }
-        .auth-user-area{display:none;align-items:center;gap:7px;min-height:34px;max-width:210px;padding:6px 10px;border:1px solid rgba(52,211,153,.20);border-radius:10px;background:rgba(52,211,153,.06);color:var(--text-primary);overflow:hidden}
-        .auth-user-area.show{display:inline-flex}
-        .auth-user-dot{width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:var(--accent-green);box-shadow:0 0 12px rgba(52,211,153,.55)}
-        .auth-user-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.74rem;font-weight:800}
-        .auth-user-state{color:#a7f3d0;font-size:.60rem;font-weight:700;white-space:nowrap}
+        .tool-actions {
+            display: flex;
+            gap: 7px;
+        }
 
         .tool-btn {
             border: 1px solid var(--line-soft);
@@ -1342,6 +1340,25 @@
         .auth-logout{height:42px;border:1px solid rgba(244,63,94,.28);border-radius:11px;background:rgba(244,63,94,.08);color:#fda4af;font:inherit;font-weight:800;cursor:pointer}
         @media(max-width:600px){.auth-user-area{width:100%;justify-content:flex-end}.auth-btn{flex:1}.auth-user-badge{flex:1;justify-content:center}.auth-card{padding:18px}}
 
+
+/* Arabic RTL presentation layer — no JavaScript/detection changes */
+html{direction:rtl}
+body{direction:rtl;text-align:right}
+.app{direction:rtl}
+.header,.sub,.top-tools,.driver-mode-header,.pro-card-header,.session-bar,.quick-guide,.stats-footer{direction:rtl}
+.header-left,.live-indicator,.tool-actions,.feature-card,.status-item,.settings-row,.settings-row label,.stats-footer .stat-group,.driver-mode-title,.driver-mode-toggle,.quality-row,.system-status,.alert-center,.session-actions,.account-data-actions,.auth-user-area,.auth-card-header{direction:rtl}
+.status-value,#timerDisplay,#distanceDisplay,#earDisplay,#alarmCountdown,#sessionTimer,.metric-value,.session-clock,.history-item,.range-value{direction:ltr;unicode-bidi:plaintext}
+input[type="range"]{direction:ltr}
+.header-left{text-align:right}
+.header-badge{flex-direction:row-reverse}
+.sub .stats-mini{direction:rtl}
+.status-panel,.feature-strip,.dashboard-grid,.metric-grid,.account-data-grid,.driver-status-grid{direction:rtl}
+.quick-guide-text,.privacy-panel,.account-data-note,.auth-message,.auth-privacy{ text-align:right }
+.history-item{text-align:right}
+.auth-modal{direction:rtl}.auth-card{text-align:right}.auth-tabs{direction:rtl}.auth-field{text-align:right}.auth-field input{text-align:right}.auth-field input::placeholder{text-align:right}
+.auth-submit,.auth-logout,.account-data-btn,.tool-btn,.btn,.small-btn{direction:rtl}
+#video,#output{direction:ltr}
+
     </style>
 </head>
 <body>
@@ -1380,10 +1397,9 @@
                 <strong id="uiModeLabel">الوضع الذكي</strong>
             </div>
             <div class="tool-actions">
-                <div class="auth-user-area" id="authUserArea" aria-live="polite"><span class="auth-user-dot" id="authUserBadge"></span><span class="auth-user-name" id="authUserName">زائر</span><span class="auth-user-state">مسجل</span></div>
                 <button class="tool-btn" id="compactBtn" type="button">▦ واجهة مختصرة</button>
                 <button class="tool-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
-                <button class="tool-btn" id="authAccountBtnToolbar" type="button">👤 تسجيل الدخول</button>
+                <button class="tool-btn" id="authAccountBtnToolbar" type="button">👤 حساب</button>
             </div>
         </div>
 
@@ -1396,7 +1412,7 @@
                         <span>Driver Monitoring Mode</span>
                     </div>
                     <p class="driver-mode-sub">
-                        يمنع إطفاء الشاشة تلقائياً أثناء المراقبة عند تفعيل الوضع
+                        يمنع إطفاء الشاشة تلقائياً أثناء المراقبة عند تفعيل الوضع.
                     </p>
                 </div>
 
@@ -1432,22 +1448,22 @@
             <div class="feature-card">
                 <span class="feature-icon">🧠</span>
                 <span class="feature-title">تحليل ذكي</span>
-                <span class="feature-desc">FaceMesh لتحليل نقاط الوجه ومراقبة العين بشكل لحظي</span>
+                <span class="feature-desc">FaceMesh لتحليل نقاط الوجه ومراقبة العين بشكل لحظي.</span>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">👁️</span>
                 <span class="feature-title">مراقبة EAR</span>
-                <span class="feature-desc">عرض نسبة العين والمسافة العمودية لمتابعة الإغلاق</span>
+                <span class="feature-desc">عرض نسبة العين والمسافة العمودية لمتابعة الإغلاق.</span>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">🔊</span>
                 <span class="feature-title">إنذار فوري</span>
-                <span class="feature-desc">تنبيه صوتي ومرئي عند تجاوز حد الإغلاق المحدد</span>
+                <span class="feature-desc">تنبيه صوتي ومرئي عند تجاوز حد الإغلاق المحدد.</span>
             </div>
             <div class="feature-card">
                 <span class="feature-icon">📊</span>
                 <span class="feature-title">إحصائيات الجلسة</span>
-                <span class="feature-desc">عدد الإغلاقات والإنذارات والمتوسط وأطول مدة</span>
+                <span class="feature-desc">عدد الإغلاقات والإنذارات والمتوسط وأطول مدة.</span>
             </div>
         </div>
 
@@ -1556,7 +1572,7 @@
                     <div class="quality-ring" id="qualityRing"><strong id="qualityPercent">0%</strong></div>
                     <div class="quality-text">
                         <strong id="qualityLabel">في انتظار الكاميرا</strong>
-                        <span id="qualityDetail">ابدأ النظام للحصول على تقييم التتبع</span>
+                        <span id="qualityDetail">ابدأ النظام للحصول على تقييم التتبع.</span>
                     </div>
                 </div>
                 <div class="mini-progress"><i id="qualityProgress"></i></div>
@@ -1590,7 +1606,7 @@
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
-                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى خادم بواسطة هذا التطبيق</div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى خادم بواسطة هذا التطبيق.</div>
             </section>
 
             <section class="pro-card">
@@ -1618,7 +1634,8 @@
         <!-- ====== ACCOUNT DATA DASHBOARD ====== -->
         <section class="pro-card account-data-card" id="accountDataCard">
             <div class="pro-card-header">
-                <div class="pro-card-title">إحصائييات</div>
+                <div class="pro-card-title">☁️ بيانات حسابك</div>
+                <div class="pro-card-sub cloud-history-note">إحصائيات فقط — بدون فيديو أو صور وجه</div>
             </div>
             <div class="account-data-grid">
                 <div class="account-data-stat"><small>جلسات محفوظة</small><strong id="cloudSessionCount">0</strong></div>
@@ -1628,16 +1645,15 @@
             </div>
             <div class="account-data-actions">
                 <button class="account-data-btn" id="refreshCloudDataBtn" type="button">↻ مزامنة البيانات</button>
-                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">حذف بياناتي من قاعدة البيانات</button>
+                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">🗑 حذف بياناتي من MongoDB</button>
             </div>
-            <div class="cloud-sync-status" id="cloudSyncStatus">☁️ سجّل الدخول لمزامنة الجلسات</div>
-            <div class="account-data-note">🔒لا تحفظ أي بيانات حساسة (فيديو التتبع أو صور الوجه) في قاعدة البيانات</div>
+            <div class="account-data-note">🔒 تُحفظ فقط مدة الجلسة وعدد التنبيهات وزمنها وحالة إكمال الجلسة. لا يتم إرسال الكاميرا أو الفيديو أو صور الوجه أو Face Landmarks أو الصوت إلى قاعدة البيانات.</div>
         </section>
 
         <!-- ====== QUICK GUIDE ====== -->
         <div class="quick-guide">
             <div class="quick-guide-text">
-                <strong>نصيحة:</strong> ضع الوجه أمام الكاميرا بإضاءة جيدة وحافظ على مسافة مناسبة للحصول على تتبع أكثر استقراراً
+                <strong>نصيحة:</strong> ضع الوجه أمام الكاميرا بإضاءة جيدة وحافظ على مسافة مناسبة للحصول على تتبع أكثر استقراراً.
             </div>
             <div class="privacy-badge">قد بحذر من فضلك، عائلتك في إنتظارك</div>
         </div>
@@ -1645,7 +1661,7 @@
         <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
         <div class="footnote">
-            Anti Sleep System • by MADOUNINE Hacene • تحيا الجزائر
+            Anti Sleep System • MADOUNINE Hacene • تحيا الجزائر
         </div>
     </div>
 
@@ -2315,10 +2331,10 @@ function updateQuality(){
     if(ring) ring.style.background=`conic-gradient(var(--accent-green) ${score*3.6}deg,rgba(148,163,200,.12) ${score*3.6}deg)`;
     $('qualityPercent').textContent=score+'%';
     $('qualityProgress').style.width=score+'%';
-    let label='في انتظار الكاميرا',detail='ابدأ النظام للحصول على تقييم التتبع';
-    if(score>=85){label='ممتاز';detail='الوجه والعينان قيد التتبع بشكل مستقر'}
-    else if(score>=55){label='جيد';detail='التتبع يعمل، حاول الحفاظ على إضاءة ومسافة ثابتة'}
-    else if(running){label='يحتاج تحسين';detail='ضع الوجه داخل الإطار وتأكد من الإضاءة'}
+    let label='في انتظار الكاميرا',detail='ابدأ النظام للحصول على تقييم التتبع.';
+    if(score>=85){label='ممتاز';detail='الوجه والعينان قيد التتبع بشكل مستقر.'}
+    else if(score>=55){label='جيد';detail='التتبع يعمل، حاول الحفاظ على إضاءة ومسافة ثابتة.'}
+    else if(running){label='يحتاج تحسين';detail='ضع الوجه داخل الإطار وتأكد من الإضاءة.'}
     $('qualityLabel').textContent=label;$('qualityDetail').textContent=detail;
     setHealth('cameraHealth',running?'متصل':'جاهز',running?'ok':'');
     setHealth('faceHealth',hasFace?'مكتشف':'انتظار',hasFace?'ok':'warn');
@@ -2375,16 +2391,16 @@ function loadHistory(){
 }
 function saveSession(){
     const avg=earSamples?(earSum/earSamples).toFixed(3):'--';
-    const durationSeconds=Math.max(1,Math.round(sessionElapsedBeforePause));
-    const alertCount=Math.max(0,Math.round(sessionAlarmCount));
-    const alertSeconds=Math.max(0,Number(sessionAlertSeconds.toFixed(1)));
-    const item={date:formatDateTime(),duration:durationSeconds,alerts:alertCount,alertSeconds,avgEar:avg,minEar:minEar===Infinity?'--':minEar.toFixed(3)};
+    const item={date:formatDateTime(),duration:Math.round(sessionElapsedBeforePause),alerts:sessionAlarmCount,alertSeconds:Number(sessionAlertSeconds.toFixed(1)),avgEar:avg,minEar:minEar===Infinity?'--':minEar.toFixed(3)};
     let list=[];try{list=JSON.parse(localStorage.getItem('antiSleepSessions')||'[]')}catch(e){}
-    list.unshift(item);localStorage.setItem('antiSleepSessions',JSON.stringify(list.slice(0,30)));
+    list.unshift(item);localStorage.setItem('antiSleepSessions',JSON.stringify(list.slice(0,30)));loadHistory();
     if(typeof window.__antiSleepSaveRemoteSession==='function'){
-        window.__antiSleepSaveRemoteSession({durationSeconds,alertCount,alertSeconds,completed:true});
-    } else {
-        loadHistory();
+        window.__antiSleepSaveRemoteSession({
+            durationSeconds:Math.max(1,Math.round(sessionElapsedBeforePause)),
+            alertCount:Math.max(0,Math.round(sessionAlarmCount)),
+            alertSeconds:Math.max(0,Number(sessionAlertSeconds.toFixed(1))),
+            completed:true
+        });
     }
 }
 function exportReport(){
@@ -2661,34 +2677,190 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
 
 
 <script>
+/* ============================================================
+   ACCOUNT AUTHENTICATION CLIENT
+   Additive only. It does not touch camera, MediaPipe, EAR,
+   alarm logic, Driver Monitoring Mode, analytics, or PWA logic.
+   ============================================================ */
 (function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const modal=$('authModal'),closeBtn=$('authCloseBtn'),loginTab=$('loginTab'),registerTab=$('registerTab'),loginForm=$('loginForm'),registerForm=$('registerForm'),message=$('authMessage'),toolbarBtn=$('authAccountBtnToolbar'),userArea=$('authUserArea'),userBadge=$('authUserBadge'),userName=$('authUserName'),profileName=$('authProfileName'),profileEmail=$('authProfileEmail'),loggedPanel=$('authLoggedPanel'),tabs=$('authTabs'),logoutBtn=$('authLogoutBtn'),accountDataCard=$('accountDataCard'),cloudSessionCount=$('cloudSessionCount'),cloudMonitoringTime=$('cloudMonitoringTime'),cloudAlertCount=$('cloudAlertCount'),cloudAverageSession=$('cloudAverageSession'),historySourceLabel=$('historySourceLabel'),refreshCloudDataBtn=$('refreshCloudDataBtn'),deleteCloudDataBtn=$('deleteCloudDataBtn'),cloudSyncStatus=$('cloudSyncStatus');
-let currentUser=null;
-function setMessage(text,type){if(!message)return;message.textContent=text||'';message.className='auth-message '+(type||'')}
-function setCloudStatus(text,type=''){if(!cloudSyncStatus)return;cloudSyncStatus.textContent=text;cloudSyncStatus.className='cloud-sync-status '+type}
-function openAuth(mode='login'){modal?.classList.add('show');modal?.setAttribute('aria-hidden','false');setMode(currentUser?'login':mode);setMessage('');setTimeout(()=>$(mode==='login'?'loginEmail':'registerName')?.focus(),50)}
-function closeAuth(){modal?.classList.remove('show');modal?.setAttribute('aria-hidden','true')}
-function setMode(mode){const login=mode==='login';loginTab?.classList.toggle('active',login);registerTab?.classList.toggle('active',!login);if(loginForm)loginForm.style.display=login?'grid':'none';if(registerForm)registerForm.style.display=login?'none':'grid';if(tabs)tabs.style.display=currentUser?'none':'grid';if(loggedPanel)loggedPanel.classList.toggle('show',!!currentUser);if(loginTab)loginTab.disabled=!!currentUser;if(registerTab)registerTab.disabled=!!currentUser}
-function setLoading(form,on){const btn=form?.querySelector('button[type="submit"]');if(btn){btn.disabled=on;btn.dataset.oldText??=btn.textContent;if(on)btn.textContent='⏳ جارٍ التنفيذ...';else btn.textContent=btn.dataset.oldText}}
-function updateAuthUI(){const logged=!!currentUser;userArea?.classList.toggle('show',logged);userBadge?.classList.toggle('show',logged);if(toolbarBtn)toolbarBtn.textContent=logged?'👤 حسابي':'👤 تسجيل الدخول';if(userName)userName.textContent=logged?(currentUser.name||currentUser.email):'زائر';if(profileName)profileName.textContent=logged?(currentUser.name||'مستخدم'):'--';if(profileEmail)profileEmail.textContent=logged?(currentUser.email||''):'--';accountDataCard?.classList.toggle('show',logged);if(historySourceLabel)historySourceLabel.textContent=logged?'☁️ حسابي — بيانات سحابية':'محلي على جهازك';window.__antiSleepAuthUser=currentUser||null;if(logged){setMode('login');setCloudStatus('☁️ جارٍ تحميل بيانات حسابك...');loadCloudData()}else{setCloudStatus('☁️ سجّل الدخول لمزامنة الجلسات');if(cloudSessionCount)cloudSessionCount.textContent='0';if(cloudMonitoringTime)cloudMonitoringTime.textContent='0د';if(cloudAlertCount)cloudAlertCount.textContent='0';if(cloudAverageSession)cloudAverageSession.textContent='0د';loadHistory()}}
-async function api(path,options={}){const res=await fetch(path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});let data=null;try{data=await res.json()}catch(e){}if(!res.ok)throw new Error(data?.message||`حدث خطأ في الخادم (${res.status})`);return data}
-function formatCloudMinutes(seconds){const total=Math.max(0,Math.round(Number(seconds)||0)),h=Math.floor(total/3600),m=Math.floor((total%3600)/60);return h>0?h+'س '+m+'د':m+'د'}
-function renderCloudStats(stats){if(cloudSessionCount)cloudSessionCount.textContent=String(stats?.sessionCount||0);if(cloudMonitoringTime)cloudMonitoringTime.textContent=formatCloudMinutes(stats?.totalDurationSeconds||0);if(cloudAlertCount)cloudAlertCount.textContent=String(stats?.totalAlerts||0);if(cloudAverageSession)cloudAverageSession.textContent=formatCloudMinutes(stats?.averageDurationSeconds||0)}
-function renderCloudHistory(items){const box=$('historyList');if(!box)return;if(!Array.isArray(items)||!items.length){box.innerHTML='<div class="empty-history">لا توجد جلسات محفوظة في حسابك</div>';return}box.innerHTML=items.slice(0,30).map(x=>{const date=x.endedAt?new Date(x.endedAt).toLocaleString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'--';return `<div class="history-item"><strong>${date}</strong><span>${formatCloudMinutes(x.durationSeconds)}</span><span>🚨 ${Number(x.alertCount||0)} • ${x.completed?'مكتملة':'غير مكتملة'}</span></div>`}).join('')}
-async function loadCloudData(){if(!currentUser)return false;try{const [stats,sessions]=await Promise.all([api('/api/data/stats'),api('/api/data/sessions?limit=30')]);renderCloudStats(stats);renderCloudHistory(sessions.sessions||[]);setCloudStatus('☁️ تمت مزامنة بيانات حسابك','ok');if(historySourceLabel)historySourceLabel.textContent='';return true}catch(err){console.warn('Cloud data unavailable:',err.message);setCloudStatus('⚠️ تعذر مزامنة بيانات الحساب','error');if(historySourceLabel)historySourceLabel.textContent='☁️ حسابي — المزامنة غير متاحة';return false}}
-async function refreshUserFromServer(){try{const data=await api('/api/auth/me');currentUser=data.user||null;return !!currentUser}catch(e){currentUser=null;return false}}
-async function saveRemoteSession(payload){if(!currentUser)await refreshUserFromServer();if(!currentUser){setCloudStatus('⚠️ الجلسة محلية — سجّل الدخول للحفظ السحابي','warn');return false}try{setCloudStatus('☁️ جارٍ حفظ الجلسة في حسابك...');await api('/api/data/sessions',{method:'POST',body:JSON.stringify(payload)});await loadCloudData();setCloudStatus('☁️ تم حفظ الجلسة في حسابك','ok');return true}catch(err){console.warn('Remote session was not saved:',err.message);setCloudStatus('⚠️ تعذر حفظ الجلسة في MongoDB','error');return false}}
-window.__antiSleepSaveRemoteSession=saveRemoteSession;
-refreshCloudDataBtn?.addEventListener('click',async()=>{if(!currentUser){openAuth('login');return}refreshCloudDataBtn.disabled=true;try{await loadCloudData();setMessage('تمت مزامنة بيانات الحساب.','success')}finally{refreshCloudDataBtn.disabled=false}});
-deleteCloudDataBtn?.addEventListener('click',async()=>{if(!currentUser){openAuth('login');return}if(!confirm('سيتم حذف سجل جلسات المراقبة والإحصائيات من MongoDB نهائيًا. هل تريد المتابعة؟'))return;deleteCloudDataBtn.disabled=true;try{await api('/api/data/sessions',{method:'DELETE'});renderCloudStats({});renderCloudHistory([]);setCloudStatus('☁️ تم حذف بيانات المراقبة من حسابك','ok');setMessage('تم حذف بيانات المراقبة من MongoDB.','success')}catch(err){setMessage(err.message,'error');setCloudStatus('⚠️ تعذر حذف البيانات','error')}finally{deleteCloudDataBtn.disabled=false}});
-async function refreshUser(){await refreshUserFromServer();updateAuthUI()}
-toolbarBtn?.addEventListener('click',()=>openAuth('login'));closeBtn?.addEventListener('click',closeAuth);loginTab?.addEventListener('click',()=>setMode('login'));registerTab?.addEventListener('click',()=>setMode('register'));modal?.addEventListener('click',e=>{if(e.target===modal)closeAuth()});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal?.classList.contains('show'))closeAuth()});
-loginForm?.addEventListener('submit',async e=>{e.preventDefault();setMessage('');setLoading(loginForm,true);const fd=new FormData(loginForm);try{const data=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:fd.get('email'),password:fd.get('password')})});currentUser=data.user||null;updateAuthUI();await loadCloudData();setMessage('تم تسجيل الدخول بنجاح. بيانات حسابك جاهزة.','success');setTimeout(closeAuth,900)}catch(err){setMessage(err.message,'error')}finally{setLoading(loginForm,false)}});
-registerForm?.addEventListener('submit',async e=>{e.preventDefault();setMessage('');setLoading(registerForm,true);const fd=new FormData(registerForm);try{const data=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),password:fd.get('password')})});currentUser=data.user||null;updateAuthUI();await loadCloudData();setMessage('تم إنشاء الحساب وتسجيل الدخول.','success');registerForm.reset();setTimeout(closeAuth,900)}catch(err){setMessage(err.message,'error')}finally{setLoading(registerForm,false)}});
-logoutBtn?.addEventListener('click',async()=>{try{await api('/api/auth/logout',{method:'POST'});currentUser=null;updateAuthUI();setMessage('تم تسجيل الخروج.','success');setMode('login')}catch(err){setMessage(err.message,'error')}});
-refreshUser();
+    'use strict';
+    const $=id=>document.getElementById(id);
+    const modal=$('authModal'), closeBtn=$('authCloseBtn');
+    const loginTab=$('loginTab'), registerTab=$('registerTab');
+    const loginForm=$('loginForm'), registerForm=$('registerForm');
+    const message=$('authMessage');
+    const toolbarBtn=$('authAccountBtnToolbar');
+    const userArea=$('authUserArea');
+    const userBadge=$('authUserBadge'), userName=$('authUserName');
+    const profileName=$('authProfileName'), profileEmail=$('authProfileEmail');
+    const loggedPanel=$('authLoggedPanel'), tabs=$('authTabs');
+    const logoutBtn=$('authLogoutBtn');
+    const accountDataCard=$('accountDataCard');
+    const cloudSessionCount=$('cloudSessionCount'), cloudMonitoringTime=$('cloudMonitoringTime');
+    const cloudAlertCount=$('cloudAlertCount'), cloudAverageSession=$('cloudAverageSession');
+    const historySourceLabel=$('historySourceLabel');
+    const refreshCloudDataBtn=$('refreshCloudDataBtn'), deleteCloudDataBtn=$('deleteCloudDataBtn');
+    let currentUser=null;
+
+    function setMessage(text,type){
+        if(!message)return;
+        message.textContent=text||'';
+        message.className='auth-message '+(type||'');
+    }
+    function openAuth(mode='login'){
+        modal?.classList.add('show');
+        modal?.setAttribute('aria-hidden','false');
+        setMode(mode); setMessage('');
+        setTimeout(()=>$(mode==='login'?'loginEmail':'registerName')?.focus(),50);
+    }
+    function closeAuth(){
+        modal?.classList.remove('show');
+        modal?.setAttribute('aria-hidden','true');
+    }
+    function setMode(mode){
+        const login=mode==='login';
+        loginTab?.classList.toggle('active',login); registerTab?.classList.toggle('active',!login);
+        if(loginForm)loginForm.style.display=login?'grid':'none';
+        if(registerForm)registerForm.style.display=login?'none':'grid';
+        if(tabs)tabs.style.display=currentUser?'none':'grid';
+        if(loggedPanel)loggedPanel.classList.toggle('show',!!currentUser);
+        if(loginTab)loginTab.disabled=!!currentUser;
+        if(registerTab)registerTab.disabled=!!currentUser;
+    }
+    function setLoading(form,on){
+        const btn=form?.querySelector('button[type="submit"]');
+        if(btn){btn.disabled=on;btn.dataset.oldText ??= btn.textContent;if(on)btn.textContent='⏳ جارٍ التنفيذ...';else btn.textContent=btn.dataset.oldText;}
+    }
+    function updateAuthUI(){
+        if(!userArea)return;
+        userArea.style.display='flex';
+        const logged=!!currentUser;
+        toolbarBtn.textContent=logged?'👤 الحساب':'👤 تسجيل الدخول';
+        userBadge?.classList.toggle('show',logged);
+        if(userName)userName.textContent=logged?(currentUser.name||currentUser.email):'حساب';
+        if(profileName)profileName.textContent=logged?(currentUser.name||'مستخدم'):'--';
+        if(profileEmail)profileEmail.textContent=logged?(currentUser.email||''):'--';
+        accountDataCard?.classList.toggle('show',logged);
+        if(historySourceLabel)historySourceLabel.textContent=logged?'☁️ الحساب + محلي':'محلي على جهازك';
+        window.__antiSleepAuthUser= currentUser || null;
+        if(logged){ setMode('login'); loadCloudData(); }
+        else {
+            if(cloudSessionCount)cloudSessionCount.textContent='0';
+            if(cloudMonitoringTime)cloudMonitoringTime.textContent='0د';
+            if(cloudAlertCount)cloudAlertCount.textContent='0';
+            if(cloudAverageSession)cloudAverageSession.textContent='0د';
+            loadHistory();
+        }
+    }
+    async function api(path,options={}){
+        const res=await fetch(path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+        let data=null; try{data=await res.json()}catch(e){}
+        if(!res.ok) throw new Error(data?.message||'حدث خطأ في الخادم');
+        return data;
+    }
+    function formatCloudMinutes(seconds){
+        const total=Math.max(0,Math.round(Number(seconds)||0));
+        const h=Math.floor(total/3600), m=Math.floor((total%3600)/60);
+        if(h>0)return h+'س '+m+'د';
+        return m+'د';
+    }
+    function renderCloudStats(stats){
+        if(cloudSessionCount)cloudSessionCount.textContent=String(stats?.sessionCount||0);
+        if(cloudMonitoringTime)cloudMonitoringTime.textContent=formatCloudMinutes(stats?.totalDurationSeconds||0);
+        if(cloudAlertCount)cloudAlertCount.textContent=String(stats?.totalAlerts||0);
+        if(cloudAverageSession)cloudAverageSession.textContent=formatCloudMinutes(stats?.averageDurationSeconds||0);
+    }
+    function renderCloudHistory(items){
+        const box=$('historyList'); if(!box)return;
+        if(!Array.isArray(items)||!items.length){
+            loadHistory();
+            return;
+        }
+        box.innerHTML=items.slice(0,30).map(x=>{
+            const date=x.endedAt?new Date(x.endedAt).toLocaleString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'--';
+            const dur=formatCloudMinutes(x.durationSeconds);
+            return `<div class="history-item"><strong>${date}</strong><span>${dur}</span><span>🚨 ${Number(x.alertCount||0)} • ${x.completed?'مكتملة':'غير مكتملة'}</span></div>`;
+        }).join('');
+    }
+    async function loadCloudData(){
+        if(!currentUser)return;
+        try{
+            const [stats,sessions]=await Promise.all([api('/api/data/stats'),api('/api/data/sessions?limit=30')]);
+            renderCloudStats(stats);
+            renderCloudHistory(sessions.sessions||[]);
+        }catch(err){
+            console.warn('Cloud data unavailable:',err.message);
+            if(historySourceLabel)historySourceLabel.textContent='محلي — تعذر مزامنة السحابة';
+        }
+    }
+    async function saveRemoteSession(payload){
+        if(!currentUser)return;
+        try{
+            await api('/api/data/sessions',{method:'POST',body:JSON.stringify(payload)});
+            await loadCloudData();
+        }catch(err){
+            console.warn('Remote session was not saved:',err.message);
+        }
+    }
+    window.__antiSleepSaveRemoteSession=saveRemoteSession;
+    refreshCloudDataBtn?.addEventListener('click',async()=>{
+        if(!currentUser)return;
+        refreshCloudDataBtn.disabled=true;
+        try{await loadCloudData();setMessage('تمت مزامنة بيانات الحساب.','success')}finally{refreshCloudDataBtn.disabled=false}
+    });
+    deleteCloudDataBtn?.addEventListener('click',async()=>{
+        if(!currentUser)return;
+        if(!confirm('سيتم حذف سجل جلسات المراقبة والإحصائيات من MongoDB نهائيًا. هل تريد المتابعة؟'))return;
+        deleteCloudDataBtn.disabled=true;
+        try{
+            await api('/api/data/sessions',{method:'DELETE'});
+            renderCloudStats({});
+            loadHistory();
+            setMessage('تم حذف بيانات المراقبة من MongoDB.','success');
+        }catch(err){setMessage(err.message,'error')}
+        finally{deleteCloudDataBtn.disabled=false}
+    });
+
+    async function refreshUser(){
+        try{const data=await api('/api/auth/me');currentUser=data.user||null}catch(e){currentUser=null}
+        updateAuthUI();
+    }
+
+    toolbarBtn?.addEventListener('click',()=>openAuth(currentUser?'login':'login'));
+    closeBtn?.addEventListener('click',closeAuth);
+    loginTab?.addEventListener('click',()=>setMode('login'));
+    registerTab?.addEventListener('click',()=>setMode('register'));
+    modal?.addEventListener('click',e=>{if(e.target===modal)closeAuth()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal?.classList.contains('show'))closeAuth()});
+
+    loginForm?.addEventListener('submit',async e=>{
+        e.preventDefault();setMessage('');setLoading(loginForm,true);
+        const fd=new FormData(loginForm);
+        try{
+            const data=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:fd.get('email'),password:fd.get('password')})});
+            currentUser=data.user;updateAuthUI();setMessage('تم تسجيل الدخول بنجاح.','success');
+            setTimeout(closeAuth,650);
+        }catch(err){setMessage(err.message,'error')}
+        finally{setLoading(loginForm,false)}
+    });
+
+    registerForm?.addEventListener('submit',async e=>{
+        e.preventDefault();setMessage('');setLoading(registerForm,true);
+        const fd=new FormData(registerForm);
+        try{
+            const data=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),password:fd.get('password')})});
+            currentUser=data.user;updateAuthUI();setMessage('تم إنشاء الحساب وتسجيل الدخول.','success');registerForm.reset();
+            setTimeout(closeAuth,700);
+        }catch(err){setMessage(err.message,'error')}
+        finally{setLoading(registerForm,false)}
+    });
+
+    logoutBtn?.addEventListener('click',async()=>{
+        try{await api('/api/auth/logout',{method:'POST'});currentUser=null;updateAuthUI();setMessage('تم تسجيل الخروج.','success');setMode('login');}
+        catch(err){setMessage(err.message,'error')}
+    });
+
+    refreshUser();
 })();
 </script>
 
