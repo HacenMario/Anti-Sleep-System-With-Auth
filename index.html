@@ -1617,6 +1617,7 @@ input[type="range"]{direction:ltr}
         <div class="session-bar">
             <div class="session-clock"><small>SESSION TIME</small><span id="sessionTimer">00:00:00</span></div>
             <div class="session-actions">
+                <button class="small-btn" id="installBtn">📲 تثبيت التطبيق</button>
                 <button class="small-btn" id="exportBtn">📥 تصدير التقرير</button>
                 <button class="small-btn" id="clearHistoryBtn">🗑️ مسح السجل</button>
             </div>
@@ -1634,6 +1635,7 @@ input[type="range"]{direction:ltr}
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا بواسطة هذا التطبيق.</div>
             </section>
 
             <section class="pro-card">
@@ -1662,7 +1664,7 @@ input[type="range"]{direction:ltr}
         <section class="pro-card account-data-card" id="accountDataCard">
             <div class="pro-card-header">
                 <div class="pro-card-title">☁️ بيانات حسابك</div>
-                <div class="pro-card-sub cloud-history-note">إحصائيات</div>
+                <div class="pro-card-sub cloud-history-note">إحصائيات فقط — بدون فيديو أو صور وجه</div>
             </div>
             <div class="account-data-grid">
                 <div class="account-data-stat"><small>جلسات محفوظة</small><strong id="cloudSessionCount">0</strong></div>
@@ -1672,9 +1674,9 @@ input[type="range"]{direction:ltr}
             </div>
             <div class="account-data-actions">
                 <button class="account-data-btn" id="refreshCloudDataBtn" type="button">↻ مزامنة البيانات</button>
-                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">حذف بيانات الجلسات من قاعدة البيانات</button>
+                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">🗑 حذف بيانات الجلسات من قاعدة البينات</button>
             </div>
-            <div class="account-data-note">🔒 لا يتم حفظ فيديو التتبع أو صور للوجه أو أي بيانات حساسة بواسطة التطبيق</div>
+
         </section>
 
         <!-- ====== QUICK GUIDE ====== -->
@@ -1692,9 +1694,8 @@ input[type="range"]{direction:ltr}
         </div>
 
         <div class="footnote">
-            • تحيا الجزائر •
+           • تحيا الجزائر •
         </div>
-
     </div>
 
     <!-- ====== MEDIAPIPE ====== -->
@@ -2709,7 +2710,6 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
             </form>
 
             <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
-            <div class="auth-privacy">🔒 كلمة المرور تُخزّن في قاعدة البيانات بشكل مشفّر/مُجزّأ ولا يتم تخزينها كنص عادي. فيديو الكاميرا يبقى محليًا ولا يتم رفعه إلى MongoDB.</div>
 
             <div class="auth-logged-panel" id="authLoggedPanel">
                 <div class="auth-profile"><div class="auth-profile-name" id="authProfileName">--</div><div class="auth-profile-email" id="authProfileEmail">--</div></div>
