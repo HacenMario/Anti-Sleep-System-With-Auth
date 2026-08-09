@@ -969,6 +969,11 @@
             transform: translate(-50%, 0);
         }
 
+        .app.is-fullscreen {
+            max-width: none;
+            min-height: calc(100vh - 32px);
+        }
+
         body.compact-ui .feature-strip {
             display: none;
         }
@@ -1355,7 +1360,29 @@ input[type="range"]{direction:ltr}
 .auth-submit,.auth-logout,.account-data-btn,.tool-btn,.btn,.small-btn{direction:rtl}
 #video,#output{direction:ltr}
 
-    </style>
+    
+        .drowsiness-warning-overlay {
+            position: fixed; inset: 0; z-index: 99999; display: none;
+            align-items: center; justify-content: center; padding: 20px; direction: rtl;
+            background: rgba(2, 6, 23, .72); backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px); pointer-events: none;
+        }
+        .drowsiness-warning-overlay.show { display: flex; animation: drowsinessOverlayIn .18s ease-out; }
+        .drowsiness-warning-card {
+            width: min(560px, calc(100vw - 36px)); padding: 30px 26px 28px;
+            border: 2px solid rgba(248,113,113,.9); border-radius: 22px;
+            background: linear-gradient(145deg, rgba(69,10,10,.97), rgba(24,8,12,.98));
+            box-shadow: 0 0 0 1px rgba(248,113,113,.12), 0 20px 70px rgba(0,0,0,.55), 0 0 45px rgba(239,68,68,.28);
+            text-align: center; animation: drowsinessWarningPulse 1s ease-in-out infinite;
+        }
+        .drowsiness-warning-icon { font-size: clamp(2.5rem,8vw,4.2rem); line-height:1; margin-bottom:13px; }
+        .drowsiness-warning-title { color:#fee2e2; font-size:clamp(1.8rem,5vw,2.9rem); line-height:1.15; font-weight:950; margin-bottom:9px; }
+        .drowsiness-warning-subtitle { color:#fca5a5; font-size:clamp(.78rem,2.3vw,1.05rem); font-weight:900; letter-spacing:.12em; direction:ltr; margin-bottom:15px; }
+        .drowsiness-warning-message { color:#fecaca; font-size:clamp(.95rem,2.8vw,1.2rem); font-weight:800; }
+        @keyframes drowsinessOverlayIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+        @keyframes drowsinessWarningPulse { 0%,100%{box-shadow:0 0 0 1px rgba(248,113,113,.12),0 20px 70px rgba(0,0,0,.55),0 0 30px rgba(239,68,68,.22)} 50%{box-shadow:0 0 0 1px rgba(248,113,113,.22),0 20px 70px rgba(0,0,0,.55),0 0 58px rgba(239,68,68,.42)} }
+        @media(max-width:600px){.drowsiness-warning-card{padding:25px 18px 23px;border-radius:18px}}
+</style>
 </head>
 <body>
 
@@ -1603,7 +1630,7 @@ input[type="range"]{direction:ltr}
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
-                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى قاعدة البيانات بواسطة هذا التطبيق</div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong>المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا بواسطة هذا التطبيق</div>
             </section>
 
             <section class="pro-card">
@@ -1625,7 +1652,7 @@ input[type="range"]{direction:ltr}
                 <div class="pro-card-title">🕘 سجل الجلسات</div>
                 <div class="pro-card-sub" id="historySourceLabel">محلي على جهازك</div>
             </div>
-            <div class="history-list" id="historyList"><div class="empty-history">لا توجد جلسات محفوظة بعد.</div></div>
+            <div class="history-list" id="historyList"><div class="empty-history">لا توجد جلسات محفوظة</div></div>
         </section>
 
         <!-- ====== ACCOUNT DATA DASHBOARD ====== -->
@@ -1656,9 +1683,11 @@ input[type="range"]{direction:ltr}
         <div class="footnote">
             Anti Sleep System • by MADOUNINE Hacene •
         </div>
-                <div class="footnote">
+
+        <div class="footnote">
             تحيا الجزائر
         </div>
+
     </div>
 
     <!-- ====== MEDIAPIPE ====== -->
@@ -1711,6 +1740,7 @@ input[type="range"]{direction:ltr}
 
             // UI enhancement elements (do not affect detection algorithm)
             const compactBtn = document.getElementById('compactBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
             const toast = document.getElementById('toast');
             const uiModeLabel = document.getElementById('uiModeLabel');
 
@@ -1729,6 +1759,44 @@ input[type="range"]{direction:ltr}
                 toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
             }
 
+            function setFullscreen() {
+                const app = document.querySelector('.app');
+                if (!document.fullscreenElement) {
+                    const request = app && app.requestFullscreen ? app.requestFullscreen() : null;
+                    if (request && typeof request.catch === 'function') request.catch(() => {});
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+
+            function syncFullscreenUI() {
+                const active = !!document.fullscreenElement;
+                if (fullscreenBtn) {
+                    fullscreenBtn.textContent = active ? '⤢ إنهاء الشاشة الكاملة' : '⛶ ملء الشاشة';
+                }
+                document.querySelector('.app')?.classList.toggle('is-fullscreen', active);
+            }
+
+            compactBtn?.addEventListener('click', () => {
+                document.body.classList.toggle('compact-ui');
+                const compact = document.body.classList.contains('compact-ui');
+                compactBtn.textContent = compact ? '▦ واجهة كاملة' : '▦ واجهة مختصرة';
+                uiModeLabel.textContent = compact ? 'الوضع المختصر' : 'الوضع الذكي';
+                showToast(compact ? 'تم تفعيل الواجهة المختصرة' : 'تمت استعادة الواجهة الكاملة');
+            });
+
+            fullscreenBtn?.addEventListener('click', setFullscreen);
+            document.addEventListener('fullscreenchange', syncFullscreenUI);
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'F11') {
+                    event.preventDefault();
+                    setFullscreen();
+                }
+                if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                    compactBtn?.click();
+                }
+            });
 
             // ============================================================
             //  STATE
@@ -2596,7 +2664,17 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
 
 
     <!-- ====== AUTH MODAL ====== -->
-    <div class="auth-modal" id="authModal" aria-hidden="true">
+        <!-- DROWSINESS WARNING OVERLAY: visual alarm only -->
+    <div class="drowsiness-warning-overlay" id="drowsinessWarningOverlay" aria-hidden="true">
+        <div class="drowsiness-warning-card" role="alert" aria-live="assertive">
+            <div class="drowsiness-warning-icon">⚠️</div>
+            <div class="drowsiness-warning-title">استيقظ فوراً!</div>
+            <div class="drowsiness-warning-subtitle">DROWSINESS DETECTED</div>
+            <div class="drowsiness-warning-message">افتح عينيك وركز على الطريق</div>
+        </div>
+    </div>
+
+<div class="auth-modal" id="authModal" aria-hidden="true">
         <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
             <div class="auth-card-header">
                 <div>
@@ -2624,6 +2702,7 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
             </form>
 
             <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
+            <div class="auth-privacy">🔒 كلمة المرور تُخزّن في قاعدة البيانات بشكل مشفّر/مُجزّأ ولا يتم تخزينها كنص عادي. فيديو الكاميرا يبقى محليًا ولا يتم رفعه إلى MongoDB.</div>
 
             <div class="auth-logged-panel" id="authLoggedPanel">
                 <div class="auth-profile"><div class="auth-profile-name" id="authProfileName">--</div><div class="auth-profile-email" id="authProfileEmail">--</div></div>
@@ -2818,6 +2897,22 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
     });
 
     refreshUser();
+})();
+
+/* DROWSINESS WARNING OVERLAY CONTROLLER — presentation only */
+(function(){
+    'use strict';
+    const overlay=document.getElementById('drowsinessWarningOverlay');
+    if(!overlay)return;
+    function isAlarmActive(){
+        const alarm=document.getElementById('alarmCenter')||document.getElementById('alarmOverlay')||document.querySelector('.alarm-center,.alarm-overlay,[data-alarm-active="true"]');
+        if(!alarm)return false;
+        const style=getComputedStyle(alarm);
+        return alarm.classList.contains('show')||alarm.classList.contains('active')||alarm.classList.contains('visible')||alarm.getAttribute('aria-hidden')==='false'||alarm.dataset.alarmActive==='true'||(style.display!=='none'&&style.visibility!=='hidden'&&style.opacity!=='0');
+    }
+    function sync(){const active=isAlarmActive();overlay.classList.toggle('show',active);overlay.setAttribute('aria-hidden',active?'false':'true');}
+    new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden','data-alarm-active']});
+    sync();
 })();
 </script>
 
