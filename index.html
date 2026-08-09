@@ -1749,7 +1749,13 @@
                     event.preventDefault();
                     setFullscreen();
                 }
-                if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                if (
+    typeof event.key === 'string' &&
+    event.key.toLowerCase() === 'c' &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.metaKey
+) {
                     compactBtn?.click();
                 }
             });
