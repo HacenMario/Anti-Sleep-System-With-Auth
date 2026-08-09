@@ -1360,57 +1360,7 @@ input[type="range"]{direction:ltr}
 .auth-submit,.auth-logout,.account-data-btn,.tool-btn,.btn,.small-btn{direction:rtl}
 #video,#output{direction:ltr}
 
-    
-        .drowsiness-warning-overlay {
-            position: fixed; inset: 0; z-index: 99999; display: none;
-            align-items: center; justify-content: center; padding: 20px; direction: rtl;
-            background: rgba(2, 6, 23, .72); backdrop-filter: blur(7px);
-            -webkit-backdrop-filter: blur(7px); pointer-events: none;
-        }
-        .drowsiness-warning-overlay.show { display: flex; animation: drowsinessOverlayIn .18s ease-out; }
-        .drowsiness-warning-card {
-            width: min(560px, calc(100vw - 36px)); padding: 30px 26px 28px;
-            border: 2px solid rgba(248,113,113,.9); border-radius: 22px;
-            background: linear-gradient(145deg, rgba(69,10,10,.97), rgba(24,8,12,.98));
-            box-shadow: 0 0 0 1px rgba(248,113,113,.12), 0 20px 70px rgba(0,0,0,.55), 0 0 45px rgba(239,68,68,.28);
-            text-align: center; animation: drowsinessWarningPulse 1s ease-in-out infinite;
-        }
-        .drowsiness-warning-icon { font-size: clamp(2.5rem,8vw,4.2rem); line-height:1; margin-bottom:13px; }
-        .drowsiness-warning-title { color:#fee2e2; font-size:clamp(1.8rem,5vw,2.9rem); line-height:1.15; font-weight:950; margin-bottom:9px; }
-        .drowsiness-warning-subtitle { color:#fca5a5; font-size:clamp(.78rem,2.3vw,1.05rem); font-weight:900; letter-spacing:.12em; direction:ltr; margin-bottom:15px; }
-        .drowsiness-warning-message { color:#fecaca; font-size:clamp(.95rem,2.8vw,1.2rem); font-weight:800; }
-        @keyframes drowsinessOverlayIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
-        @keyframes drowsinessWarningPulse { 0%,100%{box-shadow:0 0 0 1px rgba(248,113,113,.12),0 20px 70px rgba(0,0,0,.55),0 0 30px rgba(239,68,68,.22)} 50%{box-shadow:0 0 0 1px rgba(248,113,113,.22),0 20px 70px rgba(0,0,0,.55),0 0 58px rgba(239,68,68,.42)} }
-        @media(max-width:600px){.drowsiness-warning-card{padding:25px 18px 23px;border-radius:18px}}
-
-        /* ===== DROWSINESS WARNING WINDOW ===== */
-        .drowsiness-warning-overlay {
-            position: fixed; inset: 0; z-index: 99999; display: none;
-            align-items: center; justify-content: center; padding: 20px;
-            direction: rtl; background: rgba(2,6,23,.76);
-            backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
-            pointer-events: none;
-        }
-        .drowsiness-warning-overlay.show { display: flex; animation: drowsinessWarningIn .16s ease-out; }
-        .drowsiness-warning-card {
-            width: min(560px,calc(100vw - 36px)); padding: 30px 24px 27px;
-            text-align: center; border-radius: 22px;
-            border: 2px solid rgba(248,113,113,.92);
-            background: linear-gradient(145deg,rgba(69,10,10,.98),rgba(24,8,12,.98));
-            box-shadow: 0 20px 70px rgba(0,0,0,.58),0 0 55px rgba(239,68,68,.34);
-            animation: drowsinessWarningPulse 1s ease-in-out infinite;
-        }
-        .drowsiness-warning-icon { font-size: clamp(2.7rem,8vw,4.3rem); line-height:1; margin-bottom:12px; }
-        .drowsiness-warning-title { color:#fee2e2; font-size:clamp(1.8rem,5vw,2.8rem); line-height:1.15; font-weight:950; margin-bottom:9px; }
-        .drowsiness-warning-subtitle { color:#fca5a5; direction:ltr; font-size:clamp(.78rem,2.4vw,1.05rem); font-weight:900; letter-spacing:.12em; margin-bottom:14px; }
-        .drowsiness-warning-message { color:#fecaca; font-size:clamp(.95rem,2.8vw,1.18rem); font-weight:800; }
-        @keyframes drowsinessWarningIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
-        @keyframes drowsinessWarningPulse {
-            0%,100%{box-shadow:0 20px 70px rgba(0,0,0,.58),0 0 30px rgba(239,68,68,.22)}
-            50%{box-shadow:0 20px 70px rgba(0,0,0,.58),0 0 58px rgba(239,68,68,.42)}
-        }
-        @media (max-width:600px){ .drowsiness-warning-card{padding:25px 18px 23px;border-radius:18px} }
-</style>
+    </style>
 </head>
 <body>
 
@@ -1455,7 +1405,6 @@ input[type="range"]{direction:ltr}
                     </span>
                 </div>
                 <button class="tool-btn" id="compactBtn" type="button">▦ واجهة مختصرة</button>
-                <button class="tool-btn" id="fullscreenBtn" type="button">⛶ ملء الشاشة</button>
                 <button class="tool-btn" id="authAccountBtnToolbar" type="button">👤 حساب</button>
             </div>
         </div>
@@ -1662,7 +1611,7 @@ input[type="range"]{direction:ltr}
                     <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
                     <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
                 </div>
-                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح. لا يتم رفع فيديو الكاميرا إلى الخادم بواسطة هذا التطبيق.</div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong>المعالجة تتم داخل المتصفح، لا يتم حفظ فيديو الكاميرا بواسطة هذا التطبيق</div>
             </section>
 
             <section class="pro-card">
@@ -1701,9 +1650,9 @@ input[type="range"]{direction:ltr}
             </div>
             <div class="account-data-actions">
                 <button class="account-data-btn" id="refreshCloudDataBtn" type="button">↻ مزامنة البيانات</button>
-                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">🗑 حذف بيانات الجلسات من قاعدة البيانات</button>
+                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">🗑 حذف بياناتي من قاعدة البيانات</button>
             </div>
-            <div class="account-data-note">🔒 لا يتم حفظ فيديو التتبع بالكاميرا أو صور للوجه أو أي بيانات حساسة من طرف التطبيق</div>
+            <div class="account-data-note">🔒لا يتم حفظ فيديو التتبع أو صور الوجه أو أي بيانات حساسة في قاعدة البيانات</div>
         </section>
 
         <!-- ====== QUICK GUIDE ====== -->
@@ -2699,18 +2648,7 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
 
 
     <!-- ====== AUTH MODAL ====== -->
-
-    <!-- DROWSINESS WARNING OVERLAY -->
-    <div class="drowsiness-warning-overlay" id="drowsinessWarningOverlay" aria-hidden="true">
-        <div class="drowsiness-warning-card" role="alert" aria-live="assertive">
-            <div class="drowsiness-warning-icon">⚠️</div>
-            <div class="drowsiness-warning-title">استيقظ فوراً!</div>
-            <div class="drowsiness-warning-subtitle">DROWSINESS DETECTED</div>
-            <div class="drowsiness-warning-message">افتح عينيك وركز على الطريق</div>
-        </div>
-    </div>
-
-<div class="auth-modal" id="authModal" aria-hidden="true">
+    <div class="auth-modal" id="authModal" aria-hidden="true">
         <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
             <div class="auth-card-header">
                 <div>
@@ -2738,7 +2676,6 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
             </form>
 
             <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
-            <div class="auth-privacy">🔒 كلمة المرور تُخزّن في قاعدة البيانات بشكل مشفّر/مُجزّأ ولا يتم تخزينها كنص عادي. فيديو الكاميرا يبقى محليًا ولا يتم رفعه إلى MongoDB.</div>
 
             <div class="auth-logged-panel" id="authLoggedPanel">
                 <div class="auth-profile"><div class="auth-profile-name" id="authProfileName">--</div><div class="auth-profile-email" id="authProfileEmail">--</div></div>
@@ -2933,42 +2870,6 @@ window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);c
     });
 
     refreshUser();
-})();
-
-/* DROWSINESS WARNING OVERLAY CONTROLLER — presentation only */
-(function(){
-    'use strict';
-    const overlay=document.getElementById('drowsinessWarningOverlay');
-    if(!overlay)return;
-    function isAlarmActive(){
-        const alarm=document.getElementById('alarmCenter')||document.getElementById('alarmOverlay')||document.querySelector('.alarm-center,.alarm-overlay,[data-alarm-active="true"]');
-        if(!alarm)return false;
-        const style=getComputedStyle(alarm);
-        return alarm.classList.contains('show')||alarm.classList.contains('active')||alarm.classList.contains('visible')||alarm.getAttribute('aria-hidden')==='false'||alarm.dataset.alarmActive==='true'||(style.display!=='none'&&style.visibility!=='hidden'&&style.opacity!=='0');
-    }
-    function sync(){const active=isAlarmActive();overlay.classList.toggle('show',active);overlay.setAttribute('aria-hidden',active?'false':'true');}
-    new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style','hidden','aria-hidden','data-alarm-active']});
-    sync();
-})();
-
-/* ============================================================
-   DROWSINESS WARNING WINDOW CONTROLLER
-   Mirrors the existing #alarmWarning state only.
-   No detection/alarm logic is changed.
-   ============================================================ */
-(function(){
-    'use strict';
-    const overlay=document.getElementById('drowsinessWarningOverlay');
-    const alarmWarning=document.getElementById('alarmWarning');
-    if(!overlay || !alarmWarning) return;
-    function syncWarningWindow(){
-        const active=alarmWarning.classList.contains('show');
-        overlay.classList.toggle('show',active);
-        overlay.setAttribute('aria-hidden',active?'false':'true');
-    }
-    const observer=new MutationObserver(syncWarningWindow);
-    observer.observe(alarmWarning,{attributes:true,attributeFilter:['class']});
-    syncWarningWindow();
 })();
 </script>
 
