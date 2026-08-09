@@ -34,6 +34,14 @@ const authLimiter = rateLimit({
   message: { message: 'محاولات كثيرة. حاول مرة أخرى لاحقًا.' }
 });
 
+const dataLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'طلبات كثيرة. حاول مرة أخرى لاحقًا.' }
+});
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true, minlength: 2, maxlength: 60 },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 160 },
@@ -44,8 +52,46 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
+/*
+ * PRIVACY-FIRST SESSION MODEL
+ *
+ * Stored:
+ * - user ownership
+ * - session start/end timestamps
+ * - duration
+ * - alert count
+ * - total alert duration
+ * - completion state
+ *
+ * NOT stored:
+ * - camera frames/video
+ * - face images
+ * - MediaPipe landmarks
+ * - EAR samples
+ * - audio
+ * - raw biometric data
+ */
+const monitoringSessionSchema = new mongoose.Schema({
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  startedAt: { type: Date, required: true },
+  endedAt: { type: Date, required: true },
+  durationSeconds: { type: Number, required: true, min: 1, max: 86400 },
+  alertCount: { type: Number, required: true, min: 0, max: 10000 },
+  alertSeconds: { type: Number, required: true, min: 0, max: 86400 },
+  completed: { type: Boolean, default: true },
+  createdAt: { type: Date, default: Date.now }
+}, { versionKey: false });
+
+monitoringSessionSchema.index({ userId: 1, endedAt: -1 });
+const MonitoringSession = mongoose.model('MonitoringSession', monitoringSessionSchema);
+
 function publicUser(user) {
-  return { id: String(user._id), name: user.name, email: user.email, createdAt: user.createdAt };
+  return {
+    id: String(user._id),
+    name: user.name,
+    email: user.email,
+    createdAt: user.createdAt
+  };
 }
 
 function createToken(user) {
@@ -75,9 +121,11 @@ async function requireAuth(req, res, next) {
   try {
     const token = req.cookies.anti_sleep_token;
     if (!token) return res.status(401).json({ message: 'غير مسجل الدخول.' });
+
     const payload = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(payload.sub);
     if (!user) return res.status(401).json({ message: 'الحساب غير موجود.' });
+
     req.user = user;
     next();
   } catch (_) {
@@ -85,9 +133,16 @@ async function requireAuth(req, res, next) {
   }
 }
 
-app.get('/api/health', (req, res) => {
-  res.json({ ok: true, service: 'anti-sleep-backend' });
+app.get('/api/health', async (req, res) => {
+  const dbReady = mongoose.connection.readyState === 1;
+  res.status(dbReady ? 200 : 503).json({
+    ok: dbReady,
+    service: 'anti-sleep-backend',
+    database: dbReady ? 'connected' : 'disconnected'
+  });
 });
+
+/* ========================= AUTH ========================= */
 
 app.post('/api/auth/register', authLimiter, async (req, res) => {
   try {
@@ -95,19 +150,28 @@ app.post('/api/auth/register', authLimiter, async (req, res) => {
     const email = String(req.body.email || '').trim().toLowerCase();
     const password = String(req.body.password || '');
 
-    if (name.length < 2 || name.length > 60) return res.status(400).json({ message: 'الاسم يجب أن يكون بين 2 و60 حرفًا.' });
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ message: 'البريد الإلكتروني غير صالح.' });
-    if (password.length < 8 || password.length > 128) return res.status(400).json({ message: 'كلمة المرور يجب أن تكون بين 8 و128 حرفًا.' });
+    if (name.length < 2 || name.length > 60) {
+      return res.status(400).json({ message: 'الاسم يجب أن يكون بين 2 و60 حرفًا.' });
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ message: 'البريد الإلكتروني غير صالح.' });
+    }
+    if (password.length < 8 || password.length > 128) {
+      return res.status(400).json({ message: 'كلمة المرور يجب أن تكون بين 8 و128 حرفًا.' });
+    }
 
     const exists = await User.exists({ email });
     if (exists) return res.status(409).json({ message: 'هذا البريد الإلكتروني مسجل مسبقًا.' });
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({ name, email, passwordHash });
+
     setAuthCookie(res, createToken(user));
     return res.status(201).json({ user: publicUser(user) });
   } catch (err) {
-    if (err && err.code === 11000) return res.status(409).json({ message: 'هذا البريد الإلكتروني مسجل مسبقًا.' });
+    if (err && err.code === 11000) {
+      return res.status(409).json({ message: 'هذا البريد الإلكتروني مسجل مسبقًا.' });
+    }
     console.error(err);
     return res.status(500).json({ message: 'تعذر إنشاء الحساب حاليًا.' });
   }
@@ -117,14 +181,16 @@ app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
     const email = String(req.body.email || '').trim().toLowerCase();
     const password = String(req.body.password || '');
-    const user = await User.findOne({ email }).select('+passwordHash');
 
+    const user = await User.findOne({ email }).select('+passwordHash');
     if (!user) return res.status(401).json({ message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });
+
     const valid = await bcrypt.compare(password, user.passwordHash);
     if (!valid) return res.status(401).json({ message: 'البريد الإلكتروني أو كلمة المرور غير صحيحة.' });
 
     user.lastLoginAt = new Date();
     await user.save();
+
     setAuthCookie(res, createToken(user));
     return res.json({ user: publicUser(user) });
   } catch (err) {
@@ -140,6 +206,127 @@ app.post('/api/auth/logout', (req, res) => {
 
 app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ user: publicUser(req.user) });
+});
+
+/* ========================= PRIVATE DATA ========================= */
+
+// Save only privacy-safe session statistics.
+app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
+  try {
+    const durationSeconds = Math.round(Number(req.body.durationSeconds));
+    const alertCount = Math.round(Number(req.body.alertCount));
+    const alertSeconds = Number(req.body.alertSeconds);
+    const completed = req.body.completed !== false;
+
+    if (!Number.isFinite(durationSeconds) || durationSeconds < 1 || durationSeconds > 86400) {
+      return res.status(400).json({ message: 'مدة الجلسة غير صالحة.' });
+    }
+    if (!Number.isFinite(alertCount) || alertCount < 0 || alertCount > 10000) {
+      return res.status(400).json({ message: 'عدد التنبيهات غير صالح.' });
+    }
+    if (!Number.isFinite(alertSeconds) || alertSeconds < 0 || alertSeconds > durationSeconds) {
+      return res.status(400).json({ message: 'مدة التنبيه غير صالحة.' });
+    }
+
+    const endedAt = new Date();
+    const startedAt = new Date(endedAt.getTime() - durationSeconds * 1000);
+
+    const session = await MonitoringSession.create({
+      userId: req.user._id,
+      startedAt,
+      endedAt,
+      durationSeconds,
+      alertCount,
+      alertSeconds: Number(alertSeconds.toFixed(1)),
+      completed
+    });
+
+    res.status(201).json({
+      ok: true,
+      session: {
+        id: String(session._id),
+        startedAt: session.startedAt,
+        endedAt: session.endedAt,
+        durationSeconds: session.durationSeconds,
+        alertCount: session.alertCount,
+        alertSeconds: session.alertSeconds,
+        completed: session.completed
+      }
+    });
+  } catch (err) {
+    console.error('Session save failed:', err);
+    res.status(500).json({ message: 'تعذر حفظ جلسة المراقبة حاليًا.' });
+  }
+});
+
+app.get('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
+  try {
+    let limit = Number.parseInt(req.query.limit, 10);
+    if (!Number.isFinite(limit)) limit = 30;
+    limit = Math.min(Math.max(limit, 1), 100);
+
+    const sessions = await MonitoringSession.find({ userId: req.user._id })
+      .sort({ endedAt: -1 })
+      .limit(limit)
+      .select('startedAt endedAt durationSeconds alertCount alertSeconds completed -_id')
+      .lean();
+
+    res.json({ sessions });
+  } catch (err) {
+    console.error('Session list failed:', err);
+    res.status(500).json({ message: 'تعذر تحميل سجل الجلسات حاليًا.' });
+  }
+});
+
+app.get('/api/data/stats', dataLimiter, requireAuth, async (req, res) => {
+  try {
+    const [result] = await MonitoringSession.aggregate([
+      { $match: { userId: req.user._id } },
+      {
+        $group: {
+          _id: null,
+          sessionCount: { $sum: 1 },
+          totalDurationSeconds: { $sum: '$durationSeconds' },
+          totalAlerts: { $sum: '$alertCount' },
+          totalAlertSeconds: { $sum: '$alertSeconds' }
+        }
+      }
+    ]);
+
+    if (!result) {
+      return res.json({
+        sessionCount: 0,
+        totalDurationSeconds: 0,
+        totalAlerts: 0,
+        totalAlertSeconds: 0,
+        averageDurationSeconds: 0
+      });
+    }
+
+    res.json({
+      sessionCount: result.sessionCount,
+      totalDurationSeconds: result.totalDurationSeconds,
+      totalAlerts: result.totalAlerts,
+      totalAlertSeconds: Number(result.totalAlertSeconds.toFixed(1)),
+      averageDurationSeconds: result.sessionCount
+        ? Math.round(result.totalDurationSeconds / result.sessionCount)
+        : 0
+    });
+  } catch (err) {
+    console.error('Stats failed:', err);
+    res.status(500).json({ message: 'تعذر تحميل الإحصائيات حاليًا.' });
+  }
+});
+
+// Privacy control: delete ONLY the authenticated user's monitoring data.
+app.delete('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
+  try {
+    const result = await MonitoringSession.deleteMany({ userId: req.user._id });
+    res.json({ ok: true, deletedCount: result.deletedCount || 0 });
+  } catch (err) {
+    console.error('Session deletion failed:', err);
+    res.status(500).json({ message: 'تعذر حذف بيانات المراقبة حاليًا.' });
+  }
 });
 
 app.use((req, res) => res.status(404).json({ message: 'المسار غير موجود.' }));
