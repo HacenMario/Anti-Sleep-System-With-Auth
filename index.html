@@ -1618,8 +1618,7 @@
         <!-- ====== ACCOUNT DATA DASHBOARD ====== -->
         <section class="pro-card account-data-card" id="accountDataCard">
             <div class="pro-card-header">
-                <div class="pro-card-title">☁️ بيانات حسابك</div>
-                <div class="pro-card-sub cloud-history-note">إحصائيات فقط — بدون فيديو أو صور وجه</div>
+                <div class="pro-card-title">إحصائييات</div>
             </div>
             <div class="account-data-grid">
                 <div class="account-data-stat"><small>جلسات محفوظة</small><strong id="cloudSessionCount">0</strong></div>
@@ -1629,14 +1628,11 @@
             </div>
             <div class="account-data-actions">
                 <button class="account-data-btn" id="refreshCloudDataBtn" type="button">↻ مزامنة البيانات</button>
-                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">🗑 حذف بياناتي من MongoDB</button>
+                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">حذف بياناتي من قاعدة البيانات</button>
             </div>
             <div class="cloud-sync-status" id="cloudSyncStatus">☁️ سجّل الدخول لمزامنة الجلسات</div>
             <div class="account-data-note">🔒 تُحفظ فقط مدة الجلسة وعدد التنبيهات وزمنها وحالة إكمال الجلسة. لا يتم إرسال الكاميرا أو الفيديو أو صور الوجه أو Face Landmarks أو الصوت إلى قاعدة البيانات.</div>
         </section>
-
-        .cloud-sync-status{display:inline-flex;align-items:center;gap:6px;margin-top:10px;color:var(--text-secondary);font-size:.68rem;font-weight:700}
-        .cloud-sync-status.ok{color:#a7f3d0}.cloud-sync-status.warn{color:#fde68a}.cloud-sync-status.error{color:#fca5a5}
 
         <!-- ====== QUICK GUIDE ====== -->
         <div class="quick-guide">
@@ -2680,8 +2676,8 @@ function updateAuthUI(){const logged=!!currentUser;userArea?.classList.toggle('s
 async function api(path,options={}){const res=await fetch(path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});let data=null;try{data=await res.json()}catch(e){}if(!res.ok)throw new Error(data?.message||`حدث خطأ في الخادم (${res.status})`);return data}
 function formatCloudMinutes(seconds){const total=Math.max(0,Math.round(Number(seconds)||0)),h=Math.floor(total/3600),m=Math.floor((total%3600)/60);return h>0?h+'س '+m+'د':m+'د'}
 function renderCloudStats(stats){if(cloudSessionCount)cloudSessionCount.textContent=String(stats?.sessionCount||0);if(cloudMonitoringTime)cloudMonitoringTime.textContent=formatCloudMinutes(stats?.totalDurationSeconds||0);if(cloudAlertCount)cloudAlertCount.textContent=String(stats?.totalAlerts||0);if(cloudAverageSession)cloudAverageSession.textContent=formatCloudMinutes(stats?.averageDurationSeconds||0)}
-function renderCloudHistory(items){const box=$('historyList');if(!box)return;if(!Array.isArray(items)||!items.length){box.innerHTML='<div class="empty-history">☁️ لا توجد جلسات محفوظة في حسابك بعد.</div>';return}box.innerHTML=items.slice(0,30).map(x=>{const date=x.endedAt?new Date(x.endedAt).toLocaleString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'--';return `<div class="history-item"><strong>${date}</strong><span>${formatCloudMinutes(x.durationSeconds)}</span><span>🚨 ${Number(x.alertCount||0)} • ${x.completed?'مكتملة':'غير مكتملة'}</span></div>`}).join('')}
-async function loadCloudData(){if(!currentUser)return false;try{const [stats,sessions]=await Promise.all([api('/api/data/stats'),api('/api/data/sessions?limit=30')]);renderCloudStats(stats);renderCloudHistory(sessions.sessions||[]);setCloudStatus('☁️ تمت مزامنة بيانات حسابك','ok');if(historySourceLabel)historySourceLabel.textContent='☁️ حسابي — MongoDB';return true}catch(err){console.warn('Cloud data unavailable:',err.message);setCloudStatus('⚠️ تعذر مزامنة بيانات الحساب','error');if(historySourceLabel)historySourceLabel.textContent='☁️ حسابي — المزامنة غير متاحة';return false}}
+function renderCloudHistory(items){const box=$('historyList');if(!box)return;if(!Array.isArray(items)||!items.length){box.innerHTML='<div class="empty-history">لا توجد جلسات محفوظة في حسابك</div>';return}box.innerHTML=items.slice(0,30).map(x=>{const date=x.endedAt?new Date(x.endedAt).toLocaleString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'--';return `<div class="history-item"><strong>${date}</strong><span>${formatCloudMinutes(x.durationSeconds)}</span><span>🚨 ${Number(x.alertCount||0)} • ${x.completed?'مكتملة':'غير مكتملة'}</span></div>`}).join('')}
+async function loadCloudData(){if(!currentUser)return false;try{const [stats,sessions]=await Promise.all([api('/api/data/stats'),api('/api/data/sessions?limit=30')]);renderCloudStats(stats);renderCloudHistory(sessions.sessions||[]);setCloudStatus('☁️ تمت مزامنة بيانات حسابك','ok');if(historySourceLabel)historySourceLabel.textContent='';return true}catch(err){console.warn('Cloud data unavailable:',err.message);setCloudStatus('⚠️ تعذر مزامنة بيانات الحساب','error');if(historySourceLabel)historySourceLabel.textContent='☁️ حسابي — المزامنة غير متاحة';return false}}
 async function refreshUserFromServer(){try{const data=await api('/api/auth/me');currentUser=data.user||null;return !!currentUser}catch(e){currentUser=null;return false}}
 async function saveRemoteSession(payload){if(!currentUser)await refreshUserFromServer();if(!currentUser){setCloudStatus('⚠️ الجلسة محلية — سجّل الدخول للحفظ السحابي','warn');return false}try{setCloudStatus('☁️ جارٍ حفظ الجلسة في حسابك...');await api('/api/data/sessions',{method:'POST',body:JSON.stringify(payload)});await loadCloudData();setCloudStatus('☁️ تم حفظ الجلسة في حسابك','ok');return true}catch(err){console.warn('Remote session was not saved:',err.message);setCloudStatus('⚠️ تعذر حفظ الجلسة في MongoDB','error');return false}}
 window.__antiSleepSaveRemoteSession=saveRemoteSession;
