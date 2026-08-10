@@ -47,7 +47,12 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true, maxlength: 160 },
   passwordHash: { type: String, required: true, select: false },
   createdAt: { type: Date, default: Date.now },
-  lastLoginAt: { type: Date, default: null }
+  lastLoginAt: { type: Date, default: null },
+  settings: {
+    drowsyLimit: { type: Number, default: 2, min: 0.5, max: 4 },
+    earThreshold: { type: Number, default: 0.12, min: 0.10, max: 0.40 },
+    adaptiveCalibration: { type: Boolean, default: true }
+  }
 }, { versionKey: false });
 
 const User = mongoose.model('User', userSchema);
@@ -78,6 +83,10 @@ const monitoringSessionSchema = new mongoose.Schema({
   durationSeconds: { type: Number, required: true, min: 1, max: 86400 },
   alertCount: { type: Number, required: true, min: 0, max: 10000 },
   alertSeconds: { type: Number, required: true, min: 0, max: 86400 },
+  avgEar: { type: Number, min: 0, max: 2, default: null },
+  minEar: { type: Number, min: 0, max: 2, default: null },
+  perclos: { type: Number, min: 0, max: 100, default: null },
+  riskScore: { type: Number, min: 0, max: 100, default: null },
   completed: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 }, { versionKey: false });
@@ -90,7 +99,12 @@ function publicUser(user) {
     id: String(user._id),
     name: user.name,
     email: user.email,
-    createdAt: user.createdAt
+    createdAt: user.createdAt,
+    settings: {
+      drowsyLimit: user.settings?.drowsyLimit ?? 2,
+      earThreshold: user.settings?.earThreshold ?? 0.12,
+      adaptiveCalibration: user.settings?.adaptiveCalibration !== false
+    }
   };
 }
 
@@ -208,6 +222,37 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
+
+
+/* ========================= PROFILE / SETTINGS ========================= */
+app.get('/api/auth/settings', requireAuth, (req, res) => {
+  res.json({ settings: {
+    drowsyLimit: req.user.settings?.drowsyLimit ?? 2,
+    earThreshold: req.user.settings?.earThreshold ?? 0.12,
+    adaptiveCalibration: req.user.settings?.adaptiveCalibration !== false
+  }});
+});
+
+app.patch('/api/auth/settings', dataLimiter, requireAuth, async (req, res) => {
+  try {
+    const drowsyLimit = Number(req.body.drowsyLimit ?? req.user.settings?.drowsyLimit ?? 2);
+    const earThreshold = Number(req.body.earThreshold ?? req.user.settings?.earThreshold ?? 0.12);
+    const adaptiveCalibration = req.body.adaptiveCalibration !== false;
+    if (!Number.isFinite(drowsyLimit) || drowsyLimit < 0.5 || drowsyLimit > 4) {
+      return res.status(400).json({ message: 'حد الإنذار يجب أن يكون بين 0.5 و4 ثوانٍ.' });
+    }
+    if (!Number.isFinite(earThreshold) || earThreshold < 0.10 || earThreshold > 0.40) {
+      return res.status(400).json({ message: 'عتبة EAR غير صالحة.' });
+    }
+    req.user.settings = { drowsyLimit, earThreshold, adaptiveCalibration };
+    await req.user.save();
+    res.json({ settings: req.user.settings });
+  } catch (err) {
+    console.error('Settings update failed:', err);
+    res.status(500).json({ message: 'تعذر حفظ الإعدادات حاليًا.' });
+  }
+});
+
 /* ========================= PRIVATE DATA ========================= */
 
 // Save only privacy-safe session statistics.
@@ -217,6 +262,15 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
     const alertCount = Math.round(Number(req.body.alertCount));
     const alertSeconds = Number(req.body.alertSeconds);
     const completed = req.body.completed !== false;
+    const optionalNumber = (value, min, max) => {
+      if (value === null || value === undefined || value === '') return null;
+      const n = Number(value);
+      return Number.isFinite(n) && n >= min && n <= max ? n : NaN;
+    };
+    const avgEar = optionalNumber(req.body.avgEar, 0, 2);
+    const minEar = optionalNumber(req.body.minEar, 0, 2);
+    const perclos = optionalNumber(req.body.perclos, 0, 100);
+    const riskScore = optionalNumber(req.body.riskScore, 0, 100);
 
     if (!Number.isFinite(durationSeconds) || durationSeconds < 1 || durationSeconds > 86400) {
       return res.status(400).json({ message: 'مدة الجلسة غير صالحة.' });
@@ -226,6 +280,9 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
     }
     if (!Number.isFinite(alertSeconds) || alertSeconds < 0 || alertSeconds > durationSeconds) {
       return res.status(400).json({ message: 'مدة التنبيه غير صالحة.' });
+    }
+    if ([avgEar, minEar, perclos, riskScore].some(Number.isNaN)) {
+      return res.status(400).json({ message: 'بيانات التحليل غير صالحة.' });
     }
 
     const endedAt = new Date();
@@ -238,6 +295,10 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
       durationSeconds,
       alertCount,
       alertSeconds: Number(alertSeconds.toFixed(1)),
+      avgEar: avgEar === null ? null : Number(avgEar.toFixed(4)),
+      minEar: minEar === null ? null : Number(minEar.toFixed(4)),
+      perclos: perclos === null ? null : Number(perclos.toFixed(1)),
+      riskScore: riskScore === null ? null : Math.round(riskScore),
       completed
     });
 
@@ -250,6 +311,10 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
         durationSeconds: session.durationSeconds,
         alertCount: session.alertCount,
         alertSeconds: session.alertSeconds,
+        avgEar: session.avgEar,
+        minEar: session.minEar,
+        perclos: session.perclos,
+        riskScore: session.riskScore,
         completed: session.completed
       }
     });
@@ -268,7 +333,7 @@ app.get('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
     const sessions = await MonitoringSession.find({ userId: req.user._id })
       .sort({ endedAt: -1 })
       .limit(limit)
-      .select('startedAt endedAt durationSeconds alertCount alertSeconds completed -_id')
+      .select('startedAt endedAt durationSeconds alertCount alertSeconds avgEar minEar perclos riskScore completed -_id')
       .lean();
 
     res.json({ sessions });
@@ -299,6 +364,8 @@ app.get('/api/data/stats', dataLimiter, requireAuth, async (req, res) => {
         totalDurationSeconds: 0,
         totalAlerts: 0,
         totalAlertSeconds: 0,
+        averageRiskScore: 0,
+        averagePerclos: 0,
         averageDurationSeconds: 0
       });
     }
