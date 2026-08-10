@@ -1,0 +1,20 @@
+{
+  "name": "Anti Sleep System by MADOUNINE HACENE",
+  "short_name": "Anti Sleep",
+  "description": "Privacy-first browser drowsiness monitoring system.",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#080c18",
+  "theme_color": "#080c18",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

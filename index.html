@@ -1,0 +1,2926 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon.png">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#080c18" />
+    <meta name="description" content="Anti Sleep System — privacy-first browser driver drowsiness monitoring with local AI analysis." />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="favicon.png" />
+    <title>Anti Sleep System by MADOUNINE HACENE</title>
+    <style>
+        /* ====== RESET & GLOBAL ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #080c18;
+            --bg-card: #111827;
+            --bg-card-2: #1a2332;
+            --border-color: #2a3a5a;
+            --text-primary: #f0f4ff;
+            --text-secondary: #94a3c8;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #22d3ee;
+            --accent-rose: #f43f5e;
+            --accent-amber: #f59e0b;
+            --accent-green: #34d399;
+            --shadow-glow: 0 0 30px rgba(59, 130, 246, 0.15);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            background-image: radial-gradient(ellipse at 20% 50%, #0f1a2e 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 50%, #0f1a2e 0%, transparent 60%);
+        }
+
+        .app {
+            max-width: 860px;
+            width: 100%;
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 24px 24px 28px;
+            box-shadow: var(--shadow-glow), 0 20px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(2px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .app::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(from 0deg, transparent, rgba(59, 130, 246, 0.03), transparent, rgba(34, 211, 238, 0.03), transparent);
+            animation: rotateGlow 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes rotateGlow {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .app>* {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ====== HEADER ====== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+            line-height: 1;
+            filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #facc15, #f59e0b, #f97316);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .header-badge {
+            background: var(--bg-card-2);
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-badge .dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            animation: pulse-dot 2s infinite;
+        }
+
+        .header-badge .dot.inactive {
+            background: var(--accent-rose);
+            animation: none;
+        }
+
+        @keyframes pulse-dot {
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+        }
+
+        .sub {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 14px;
+            margin-bottom: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .sub .stats-mini {
+            display: flex;
+            gap: 18px;
+            font-size: 0.8rem;
+        }
+
+        .sub .stats-mini span {
+            color: var(--text-secondary);
+        }
+
+        .sub .stats-mini strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* ====== VIDEO WRAPPER ====== */
+        .video-wrapper {
+            position: relative;
+            background: #000;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            box-shadow: inset 0 0 0 1px var(--border-color), 0 8px 32px rgba(0, 0, 0, 0.6);
+            margin-bottom: 14px;
+            aspect-ratio: 4/3;
+        }
+
+        #video {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+
+        #output {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            transform: scaleX(-1);
+            pointer-events: none;
+        }
+
+        /* ====== STATUS PANEL ====== */
+        .status-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            background: var(--bg-card-2);
+            padding: 16px 18px;
+            border-radius: var(--radius-sm);
+            margin: 12px 0 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .status-item {
+            text-align: center;
+        }
+
+        .status-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+
+        .status-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: color 0.3s;
+        }
+
+        #eyeState {
+            color: var(--accent-green);
+        }
+        #eyeState.closed {
+            color: var(--accent-amber);
+        }
+        #eyeState.alarm {
+            color: var(--accent-rose);
+            animation: pulse-text 0.6s infinite alternate;
+        }
+
+        @keyframes pulse-text {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0.5;
+                transform: scale(0.96);
+            }
+        }
+
+        #timerDisplay {
+            color: var(--text-primary);
+            font-variant-numeric: tabular-nums;
+        }
+        .alarm-active #timerDisplay {
+            color: var(--accent-rose);
+        }
+
+        #distanceDisplay,
+        #earDisplay {
+            color: var(--accent-cyan);
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ====== ALARM WARNING ====== */
+        #alarmWarning {
+            display: none;
+            background: rgba(244, 63, 94, 0.15);
+            color: #fca5a5;
+            padding: 10px 20px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1rem;
+            margin-top: 6px;
+            border: 1px solid var(--accent-rose);
+            backdrop-filter: blur(4px);
+            text-align: center;
+            animation: alarm-pulse 0.8s infinite;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        #alarmWarning.show {
+            display: flex;
+        }
+
+        @keyframes alarm-pulse {
+            0%,
+            100% {
+                box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.4);
+            }
+            50% {
+                box-shadow: 0 0 20px 8px rgba(244, 63, 94, 0.15);
+            }
+        }
+
+        /* ====== CONTROLS ====== */
+        .controls {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 6px 0 12px;
+        }
+
+        .btn {
+            background: var(--bg-card-2);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 12px 28px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+            box-shadow: 0 4px 0 #0b0f19;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb, #3b82f6);
+            border-color: #60a5fa;
+            box-shadow: 0 4px 0 #1d4ed8;
+            color: #fff;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #1d4ed8;
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #dc2626, #ef4444);
+            border-color: #f87171;
+            box-shadow: 0 4px 0 #991b1b;
+            color: #fff;
+        }
+        .btn-danger:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #991b1b;
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: var(--border-color);
+            color: var(--text-secondary);
+            box-shadow: none;
+        }
+        .btn-outline:hover:not(:disabled) {
+            background: var(--bg-card-2);
+            border-color: var(--text-secondary);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            transform: translateY(0) !important;
+            cursor: not-allowed;
+            box-shadow: 0 2px 0 #0b0f19;
+        }
+
+        .btn-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+        }
+
+        /* ====== SETTINGS ROW ====== */
+        .settings-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px 20px;
+            background: var(--bg-card-2);
+            padding: 12px 18px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            margin: 10px 0 14px;
+        }
+
+        .settings-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            flex-wrap: wrap;
+        }
+
+        .settings-row input[type="range"] {
+            width: 100px;
+            height: 4px;
+            -webkit-appearance: none;
+            background: var(--border-color);
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .settings-row input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--accent-blue);
+            cursor: pointer;
+            border: 2px solid var(--bg-card);
+            box-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+
+        .settings-row .range-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 0.85rem;
+            min-width: 32px;
+            text-align: center;
+        }
+
+        .settings-row .mute-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .settings-row .mute-btn:hover {
+            border-color: var(--text-secondary);
+            color: var(--text-primary);
+        }
+        .settings-row .mute-btn.muted {
+            color: var(--accent-rose);
+            border-color: var(--accent-rose);
+        }
+
+        /* ====== STATS FOOTER ====== */
+        .stats-footer {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border-color);
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+        }
+
+        .stats-footer .stat-group {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stats-footer .stat-group span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .stats-footer .stat-group strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .footnote {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            opacity: 0.7;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        /* ====== RESPONSIVE ====== */
+        @media (max-width: 600px) {
+            .app {
+                padding: 16px;
+            }
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            .status-panel {
+                grid-template-columns: repeat(3, 1fr);
+                padding: 12px;
+                gap: 6px;
+            }
+            .status-value {
+                font-size: 1.1rem;
+            }
+            .controls .btn {
+                padding: 10px 16px;
+                font-size: 0.85rem;
+                min-width: 80px;
+            }
+            .settings-row {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .settings-row label {
+                justify-content: space-between;
+            }
+            .settings-row input[type="range"] {
+                width: 100%;
+            }
+            .stats-footer {
+                flex-direction: column;
+                align-items: center;
+            }
+            .sub .stats-mini {
+                gap: 10px;
+                font-size: 0.7rem;
+            }
+            .header-badge {
+                font-size: 0.6rem;
+                padding: 4px 10px;
+            }
+            .logo-icon {
+                font-size: 1.5rem;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .status-panel {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* ============================================================
+           PRO UI ENHANCEMENT LAYER
+           Core detection logic remains untouched.
+           ============================================================ */
+
+        :root {
+            --glass: rgba(17, 24, 39, 0.72);
+            --glass-strong: rgba(26, 35, 50, 0.88);
+            --line-soft: rgba(148, 163, 200, 0.16);
+            --success-soft: rgba(52, 211, 153, 0.10);
+            --danger-soft: rgba(244, 63, 94, 0.11);
+            --cyan-soft: rgba(34, 211, 238, 0.10);
+            --blue-soft: rgba(59, 130, 246, 0.11);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            overflow-x: hidden;
+            background:
+                radial-gradient(circle at 12% 10%, rgba(59,130,246,.13), transparent 28%),
+                radial-gradient(circle at 88% 20%, rgba(34,211,238,.10), transparent 26%),
+                radial-gradient(circle at 50% 100%, rgba(244,63,94,.07), transparent 30%),
+                var(--bg-primary);
+        }
+
+        body::before,
+        body::after {
+            content: "";
+            position: fixed;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .16;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        body::before {
+            top: 5%;
+            left: -120px;
+            background: #2563eb;
+        }
+
+        body::after {
+            right: -120px;
+            bottom: 8%;
+            background: #22d3ee;
+        }
+
+        .app {
+            max-width: 1040px;
+            padding: 22px;
+            background:
+                linear-gradient(145deg, rgba(17,24,39,.96), rgba(9,15,28,.96));
+            border-color: rgba(96,165,250,.22);
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,.025),
+                0 20px 70px rgba(0,0,0,.65),
+                0 0 70px rgba(59,130,246,.08);
+        }
+
+        .app::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            pointer-events: none;
+            background: linear-gradient(120deg, rgba(255,255,255,.035), transparent 30%, transparent 70%, rgba(34,211,238,.025));
+        }
+
+        .header {
+            margin-bottom: 14px;
+            padding: 4px 2px 0;
+        }
+
+        .header-left {
+            min-width: 0;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 15px;
+            background: linear-gradient(145deg, rgba(245,158,11,.18), rgba(59,130,246,.12));
+            border: 1px solid rgba(245,158,11,.24);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 8px 24px rgba(0,0,0,.25);
+        }
+
+        .header h1 {
+            font-size: clamp(1.15rem, 2.6vw, 1.65rem);
+            white-space: normal;
+        }
+
+        .header-badge {
+            padding: 8px 13px;
+            background: rgba(15,23,42,.74);
+            border-color: rgba(148,163,200,.18);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+        }
+
+        .top-tools {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 0 0 14px;
+            padding: 10px 12px;
+            border: 1px solid var(--line-soft);
+            border-radius: 14px;
+            background: rgba(10,17,30,.55);
+        }
+
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: .76rem;
+        }
+
+        .live-indicator strong {
+            color: var(--text-primary);
+            font-weight: 700;
+        }
+
+        .live-bar {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            box-shadow: 0 0 0 5px rgba(52,211,153,.08), 0 0 14px rgba(52,211,153,.45);
+        }
+
+        .tool-actions {
+            display: flex;
+            gap: 7px;
+        }
+
+        .tool-btn {
+            border: 1px solid var(--line-soft);
+            background: rgba(26,35,50,.68);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            min-height: 34px;
+            padding: 6px 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+        .tool-btn:hover {
+            color: var(--text-primary);
+            border-color: rgba(96,165,250,.45);
+            background: rgba(59,130,246,.10);
+            transform: translateY(-1px);
+        }
+
+        .sub {
+            padding: 0 2px 14px;
+        }
+
+        .feature-strip {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .feature-card {
+            min-width: 0;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid var(--line-soft);
+            background: linear-gradient(145deg, rgba(26,35,50,.72), rgba(15,23,42,.68));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.025);
+        }
+
+        .feature-card .feature-icon {
+            display: inline-grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            margin-bottom: 7px;
+            border-radius: 9px;
+            background: rgba(59,130,246,.10);
+            border: 1px solid rgba(59,130,246,.14);
+        }
+
+        .feature-card .feature-title {
+            display: block;
+            color: var(--text-primary);
+            font-size: .78rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+
+        .feature-card .feature-desc {
+            display: block;
+            color: var(--text-secondary);
+            font-size: .66rem;
+            line-height: 1.45;
+        }
+
+        .video-wrapper {
+            aspect-ratio: 16/10;
+            margin-bottom: 12px;
+            border-radius: 18px;
+            border-color: rgba(96,165,250,.20);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,.025),
+                0 18px 45px rgba(0,0,0,.48);
+        }
+
+        .video-wrapper::before {
+            content: "LIVE • AI FACE MONITOR";
+            position: absolute;
+            z-index: 4;
+            top: 12px;
+            left: 12px;
+            padding: 5px 9px;
+            border-radius: 8px;
+            background: rgba(3,7,18,.65);
+            border: 1px solid rgba(255,255,255,.08);
+            color: #dbeafe;
+            font-size: .58rem;
+            letter-spacing: 1px;
+            font-weight: 800;
+            backdrop-filter: blur(8px);
+            pointer-events: none;
+        }
+
+        .video-wrapper::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border: 1px solid rgba(255,255,255,.035);
+            border-radius: inherit;
+            pointer-events: none;
+        }
+
+        #video {
+            filter: saturate(1.03) contrast(1.02);
+        }
+
+        .status-panel {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 8px;
+            padding: 10px;
+            margin: 12px 0;
+            background: rgba(26,35,50,.55);
+            border-color: var(--line-soft);
+        }
+
+        .status-item {
+            min-width: 0;
+            padding: 10px 6px;
+            border-radius: 11px;
+            background: rgba(8,12,24,.28);
+            border: 1px solid rgba(148,163,200,.06);
+        }
+
+        .status-item:hover {
+            border-color: rgba(96,165,250,.14);
+        }
+
+        .status-label {
+            font-size: .55rem;
+        }
+
+        .status-value {
+            font-size: clamp(.92rem, 2vw, 1.18rem);
+        }
+
+        .status-panel.alarm-active {
+            border-color: rgba(244,63,94,.45);
+            box-shadow: 0 0 30px rgba(244,63,94,.10);
+        }
+
+        #alarmWarning {
+            min-height: 48px;
+            margin: 8px 0 12px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 10px;
+            margin: 8px 0 12px;
+        }
+
+        .btn {
+            min-height: 46px;
+            border-radius: 13px;
+            box-shadow: 0 5px 0 #0b0f19, inset 0 1px 0 rgba(255,255,255,.08);
+        }
+
+        .btn-primary {
+            box-shadow: 0 5px 0 #1d4ed8, 0 10px 28px rgba(37,99,235,.16), inset 0 1px 0 rgba(255,255,255,.14);
+        }
+
+        .btn-danger {
+            box-shadow: 0 5px 0 #991b1b, 0 10px 28px rgba(220,38,38,.10), inset 0 1px 0 rgba(255,255,255,.10);
+        }
+
+        .settings-row {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            padding: 10px;
+            background: rgba(26,35,50,.48);
+            border-color: var(--line-soft);
+        }
+
+        .settings-row > label {
+            min-width: 0;
+            padding: 10px;
+            border-radius: 11px;
+            background: rgba(8,12,24,.24);
+            border: 1px solid rgba(148,163,200,.06);
+        }
+
+        .settings-row input[type="range"] {
+            width: 100%;
+            flex: 1;
+        }
+
+        .settings-row .mute-btn {
+            margin-inline-start: auto;
+        }
+
+        .quick-guide {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-top: 12px;
+            padding: 11px 13px;
+            border: 1px dashed rgba(96,165,250,.20);
+            border-radius: 13px;
+            background: linear-gradient(90deg, rgba(59,130,246,.06), rgba(34,211,238,.04));
+        }
+
+        .quick-guide-text {
+            color: var(--text-secondary);
+            font-size: .72rem;
+            line-height: 1.5;
+        }
+
+        .quick-guide-text strong {
+            color: var(--text-primary);
+        }
+
+.privacy-badge {
+    flex: 0 0 auto;
+    color: #a7f3d0;
+    background: rgba(52,211,153,.07);
+    border: 1px solid rgba(52,211,153,.16);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.5;
+}
+
+        .stats-footer {
+            margin-top: 12px;
+            padding: 13px 4px 0;
+        }
+
+        .stats-footer .stat-group {
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+
+        .footnote {
+            margin-top: 12px;
+            line-height: 1.5;
+        }
+
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 22px;
+            transform: translate(-50%, 18px);
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            padding: 10px 14px;
+            border: 1px solid rgba(96,165,250,.24);
+            border-radius: 12px;
+            background: rgba(8,12,24,.88);
+            color: var(--text-primary);
+            box-shadow: 0 15px 40px rgba(0,0,0,.45);
+            backdrop-filter: blur(12px);
+            font-size: .75rem;
+            font-weight: 700;
+            transition: opacity .25s ease, transform .25s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        .app.is-fullscreen {
+            max-width: none;
+            min-height: calc(100vh - 32px);
+        }
+
+        body.compact-ui .feature-strip {
+            display: none;
+        }
+
+        body.compact-ui .top-tools {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 760px) {
+            .feature-strip {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .settings-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .status-panel {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 520px) {
+            body {
+                padding: 8px;
+            }
+
+            .app {
+                padding: 13px;
+                border-radius: 17px;
+            }
+
+            .top-tools {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .tool-actions {
+                width: 100%;
+            }
+
+            .tool-btn {
+                flex: 1;
+            }
+
+            .feature-strip {
+                grid-template-columns: 1fr 1fr;
+                gap: 7px;
+            }
+
+            .feature-card {
+                padding: 9px;
+            }
+
+            .feature-card .feature-desc {
+                font-size: .61rem;
+            }
+
+            .video-wrapper {
+                aspect-ratio: 4/3;
+                border-radius: 14px;
+            }
+
+            .status-panel {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding: 7px;
+            }
+
+            .status-item {
+                padding: 9px 4px;
+            }
+
+            .controls {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .btn {
+                min-height: 43px;
+                padding: 10px 12px;
+                font-size: .82rem;
+            }
+
+            .settings-row {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-row > label {
+                justify-content: space-between;
+            }
+
+            .quick-guide {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .privacy-badge {
+                align-self: stretch;
+                text-align: center;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .feature-strip {
+                grid-template-columns: 1fr;
+            }
+
+            .status-panel {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .header-left {
+                width: 100%;
+            }
+
+            .header-badge {
+                margin-inline-start: auto;
+            }
+        }
+
+        .copyright-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.algeria-flag {
+    width: 30px;
+    height: 20px;
+    object-fit: cover;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                scroll-behavior: auto !important;
+                transition-duration: .01ms !important;
+            }
+        }
+
+    
+/* ============================================================
+   ADVANCED PROFESSIONAL DASHBOARD LAYER
+   UI / analytics only. Detection engine is not modified.
+   ============================================================ */
+.dashboard-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:12px}
+.pro-card{background:linear-gradient(145deg,rgba(26,35,50,.64),rgba(8,12,24,.48));border:1px solid var(--line-soft);border-radius:15px;padding:14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+.pro-card-header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px}
+.pro-card-title{font-size:.78rem;font-weight:800;color:var(--text-primary);display:flex;align-items:center;gap:7px}
+.pro-card-sub{font-size:.62rem;color:var(--text-secondary)}
+.metric-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.metric{padding:10px;border-radius:11px;background:rgba(8,12,24,.35);border:1px solid rgba(148,163,200,.07)}
+.metric-label{font-size:.57rem;color:var(--text-secondary);display:block;margin-bottom:3px}
+.metric-value{font-size:1rem;font-weight:800;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.quality-row{display:flex;align-items:center;gap:10px}
+.quality-ring{width:52px;height:52px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent-green) 0deg,var(--accent-green) 300deg,rgba(148,163,200,.12) 300deg);position:relative;flex:0 0 auto}
+.quality-ring::after{content:"";position:absolute;inset:5px;border-radius:50%;background:#0c1322}
+.quality-ring strong{position:relative;z-index:1;font-size:.72rem}
+.quality-text{min-width:0}.quality-text strong{display:block;font-size:.76rem;color:var(--text-primary)}.quality-text span{display:block;font-size:.62rem;color:var(--text-secondary);margin-top:3px}
+.mini-progress{height:5px;background:rgba(148,163,200,.10);border-radius:99px;overflow:hidden;margin-top:8px}.mini-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan));border-radius:inherit;transition:width .25s ease}
+.chart-wrap{height:150px;position:relative}.chart-wrap canvas{width:100%;height:100%;display:block}.chart-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--text-secondary);font-size:.68rem;pointer-events:none}
+.system-list{display:grid;gap:7px}.system-row{display:flex;align-items:center;justify-content:space-between;padding:8px 9px;border-radius:10px;background:rgba(8,12,24,.3);border:1px solid rgba(148,163,200,.06);font-size:.67rem}.system-row span:first-child{color:var(--text-secondary)}.system-status{font-weight:800;display:flex;align-items:center;gap:5px}.system-status::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-amber);box-shadow:0 0 9px currentColor}.system-status.ok{color:var(--accent-green)}.system-status.warn{color:var(--accent-amber)}.system-status.bad{color:var(--accent-rose)}
+.alert-center{display:grid;grid-template-columns:1fr 1fr;gap:8px}.alert-box{padding:11px;border-radius:11px;background:rgba(8,12,24,.3);border:1px solid rgba(148,163,200,.06)}.alert-box small{display:block;color:var(--text-secondary);font-size:.57rem}.alert-box strong{display:block;margin-top:4px;font-size:.9rem;color:var(--text-primary);font-variant-numeric:tabular-nums}
+.session-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding:11px 13px;border:1px solid rgba(96,165,250,.16);border-radius:13px;background:linear-gradient(90deg,rgba(59,130,246,.07),rgba(34,211,238,.035))}
+.session-clock{font-size:1.15rem;font-weight:900;letter-spacing:.5px;font-variant-numeric:tabular-nums}.session-clock small{display:block;font-size:.55rem;color:var(--text-secondary);font-weight:600;letter-spacing:1px}
+.session-actions{display:flex;gap:6px;flex-wrap:wrap}.small-btn{border:1px solid var(--line-soft);background:rgba(26,35,50,.68);color:var(--text-secondary);padding:7px 10px;border-radius:9px;font-size:.64rem;font-weight:800;cursor:pointer}.small-btn:hover{color:var(--text-primary);border-color:rgba(96,165,250,.45)}
+.history-card{margin-top:12px}.history-list{display:grid;gap:6px;max-height:190px;overflow:auto}.history-item{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 9px;border-radius:10px;background:rgba(8,12,24,.28);border:1px solid rgba(148,163,200,.06);font-size:.62rem}.history-item strong{color:var(--text-primary)}.history-item span{color:var(--text-secondary)}.empty-history{text-align:center;color:var(--text-secondary);font-size:.65rem;padding:12px}
+.install-btn{display:none}.install-btn.show{display:inline-flex}
+.offline-badge{display:inline-flex;align-items:center;gap:5px;padding:5px 8px;border-radius:8px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.14);color:#a7f3d0;font-size:.6rem;font-weight:800}.offline-badge.offline{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.18);color:#fde68a}
+.face-overlay{position:absolute;right:12px;top:12px;z-index:5;padding:5px 9px;border-radius:8px;background:rgba(3,7,18,.68);border:1px solid rgba(255,255,255,.08);color:#dbeafe;font-size:.58rem;font-weight:800;backdrop-filter:blur(8px);pointer-events:none}
+.face-overlay.ok{color:#a7f3d0;border-color:rgba(52,211,153,.18)}.face-overlay.warn{color:#fde68a;border-color:rgba(245,158,11,.18)}
+.report-actions{display:flex;gap:6px;flex-wrap:wrap}.report-actions .small-btn{flex:1}
+.privacy-panel{margin-top:12px;padding:10px 12px;border-radius:12px;border:1px solid rgba(52,211,153,.13);background:rgba(52,211,153,.045);color:#b7f7d8;font-size:.64rem;line-height:1.55}
+@media(max-width:760px){.dashboard-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:520px){.dashboard-grid{gap:8px}.metric-grid{grid-template-columns:1fr 1fr}.session-bar{align-items:flex-start;flex-direction:column}.session-actions{width:100%}.session-actions .small-btn{flex:1}.history-item{grid-template-columns:1fr auto}.history-item span:last-child{grid-column:2}.alert-center{grid-template-columns:1fr 1fr}}
+
+    
+        /* ============================================================
+           DRIVER MONITORING MODE — UI ONLY
+           Does not modify the detection engine.
+           ============================================================ */
+        .driver-mode-card {
+            margin: 14px 0;
+            padding: 16px;
+            border: 1px solid rgba(72, 210, 150, .18);
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(20, 30, 48, .78), rgba(10, 18, 32, .72));
+            box-shadow: 0 10px 30px rgba(0,0,0,.12);
+        }
+        .driver-mode-header {
+            display:flex;
+            align-items:center;
+            justify-content:space-between;
+            gap:12px;
+            margin-bottom:10px;
+        }
+        .driver-mode-title {
+            display:flex;
+            align-items:center;
+            gap:9px;
+            font-weight:800;
+            color:var(--text-primary);
+        }
+        .driver-mode-sub {
+            margin:0;
+            color:var(--text-secondary);
+            font-size:.78rem;
+            line-height:1.6;
+        }
+        .driver-mode-toggle {
+            position:relative;
+            display:inline-flex;
+            align-items:center;
+            gap:10px;
+            min-height:44px;
+            padding:8px 12px;
+            border:1px solid rgba(255,255,255,.09);
+            border-radius:12px;
+            background:rgba(255,255,255,.035);
+            color:var(--text-primary);
+            cursor:pointer;
+            font:inherit;
+            transition:all .2s ease;
+            white-space:nowrap;
+        }
+        .driver-mode-toggle:hover {
+            transform:translateY(-1px);
+            border-color:rgba(72,210,150,.35);
+        }
+        .driver-switch {
+            width:42px;
+            height:24px;
+            border-radius:999px;
+            background:rgba(255,255,255,.12);
+            position:relative;
+            flex:none;
+            transition:background .2s ease;
+        }
+        .driver-switch::after {
+            content:"";
+            position:absolute;
+            top:3px;
+            left:3px;
+            width:18px;
+            height:18px;
+            border-radius:50%;
+            background:#d8dee9;
+            transition:transform .2s ease;
+        }
+        .driver-mode-toggle.active {
+            border-color:rgba(72,210,150,.38);
+            background:rgba(72,210,150,.08);
+        }
+        .driver-mode-toggle.active .driver-switch {
+            background:#28c98a;
+        }
+        .driver-mode-toggle.active .driver-switch::after {
+            transform:translateX(18px);
+            background:#fff;
+        }
+        .driver-status-grid {
+            display:grid;
+            grid-template-columns:repeat(3,1fr);
+            gap:8px;
+            margin-top:12px;
+        }
+        .driver-status-item {
+            padding:10px;
+            border-radius:11px;
+            background:rgba(255,255,255,.025);
+            border:1px solid rgba(255,255,255,.055);
+        }
+        .driver-status-label {
+            display:block;
+            font-size:.67rem;
+            color:var(--text-secondary);
+            margin-bottom:4px;
+        }
+        .driver-status-value {
+            font-size:.78rem;
+            font-weight:800;
+            color:var(--text-primary);
+        }
+        .driver-status-value.ok { color:#55e6a7; }
+        .driver-status-value.warn { color:#ffc857; }
+        .driver-status-value.off { color:var(--text-secondary); }
+        .driver-mode-note {
+            margin-top:10px;
+            padding:9px 11px;
+            border-radius:10px;
+            background:rgba(255,193,7,.055);
+            color:var(--text-secondary);
+            font-size:.68rem;
+            line-height:1.55;
+        }
+        @media (max-width:600px) {
+            .driver-mode-header {
+                align-items:flex-start;
+                flex-direction:column;
+            }
+            .driver-mode-toggle {
+                width:100%;
+                justify-content:space-between;
+            }
+            .driver-status-grid {
+                grid-template-columns:1fr;
+            }
+        }
+
+
+        /* ============================================================
+           ACCOUNT AUTHENTICATION UI
+           Additive layer only. Monitoring/detection logic untouched.
+           ============================================================ */
+        /* ====== ACCOUNT DATA DASHBOARD ====== */
+        .account-data-card{display:none;margin-top:12px}
+        .account-data-card.show{display:block}
+        .account-data-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+        .account-data-stat{padding:12px;border-radius:12px;background:rgba(8,12,24,.38);border:1px solid rgba(148,163,200,.09);text-align:center}
+        .account-data-stat small{display:block;color:var(--text-secondary);font-size:.6rem;margin-bottom:4px}
+        .account-data-stat strong{display:block;color:var(--text-primary);font-size:1rem;font-variant-numeric:tabular-nums}
+        .account-data-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:10px}
+        .account-data-btn{border:1px solid rgba(96,165,250,.2);background:rgba(59,130,246,.08);color:var(--text-primary);border-radius:10px;padding:7px 11px;font:inherit;font-size:.68rem;font-weight:800;cursor:pointer}
+        .account-data-btn.danger{border-color:rgba(244,63,94,.25);background:rgba(244,63,94,.07);color:#fda4af}
+        .account-data-note{margin-top:8px;color:var(--text-secondary);font-size:.61rem;line-height:1.55}
+        .cloud-history-note{color:#86efac!important}
+        @media(max-width:700px){.account-data-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:400px){.account-data-grid{grid-template-columns:1fr 1fr}.account-data-stat strong{font-size:.9rem}}
+
+        .auth-user-area{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+        .auth-user-area{direction:rtl;}
+        .auth-btn{border:1px solid rgba(96,165,250,.22);background:rgba(26,35,50,.72);color:var(--text-primary);border-radius:10px;min-height:34px;padding:6px 11px;cursor:pointer;font-size:.76rem;font-weight:800;transition:var(--transition)}
+        .auth-btn:hover{transform:translateY(-1px);border-color:rgba(96,165,250,.48);background:rgba(59,130,246,.11)}
+        .auth-user-badge{display:none;align-items:center;gap:7px;padding:6px 9px;border-radius:10px;background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.16);color:#a7f3d0;font-size:.68rem;font-weight:800}
+        .auth-user-badge.show{display:inline-flex}.auth-user-name{max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+        .auth-user-dot{width:7px;height:7px;border-radius:50%;background:var(--accent-green);box-shadow:0 0 10px rgba(52,211,153,.45)}
+        .auth-modal{position:fixed;inset:0;z-index:100000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(3,7,18,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+        .auth-modal.show{display:flex}
+        .auth-card{width:min(440px,94vw);padding:22px;border:1px solid rgba(96,165,250,.24);border-radius:20px;background:linear-gradient(145deg,rgba(17,24,39,.98),rgba(9,15,28,.98));box-shadow:0 25px 80px rgba(0,0,0,.65),0 0 50px rgba(59,130,246,.08)}
+        .auth-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+        .auth-card-title{font-size:1.15rem;font-weight:900;color:var(--text-primary)}
+        .auth-card-sub{margin-top:4px;color:var(--text-secondary);font-size:.68rem;line-height:1.55}
+        .auth-close{width:34px;height:34px;border:1px solid var(--line-soft);border-radius:10px;background:rgba(255,255,255,.03);color:var(--text-secondary);cursor:pointer;font-size:1.05rem}
+        .auth-tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px;padding:4px;border-radius:12px;background:rgba(8,12,24,.42)}
+        .auth-tab{border:0;border-radius:9px;padding:9px;background:transparent;color:var(--text-secondary);font:inherit;font-size:.75rem;font-weight:800;cursor:pointer}
+        .auth-tab.active{background:rgba(59,130,246,.14);color:var(--text-primary);box-shadow:inset 0 0 0 1px rgba(96,165,250,.15)}
+        .auth-form{display:grid;gap:10px}
+        .auth-field{display:grid;gap:5px}
+        .auth-field label{color:var(--text-secondary);font-size:.68rem;font-weight:700}
+        .auth-field input{width:100%;height:44px;padding:0 12px;border-radius:11px;border:1px solid var(--line-soft);background:rgba(8,12,24,.58);color:var(--text-primary);outline:none;font:inherit;font-size:.8rem}
+        .auth-field input:focus{border-color:rgba(96,165,250,.55);box-shadow:0 0 0 3px rgba(59,130,246,.08)}
+        .auth-submit{height:45px;margin-top:3px;border:1px solid #60a5fa;border-radius:12px;background:linear-gradient(135deg,#2563eb,#3b82f6);color:#fff;font:inherit;font-size:.82rem;font-weight:900;cursor:pointer}
+        .auth-submit:disabled{opacity:.55;cursor:wait}
+        .auth-message{min-height:18px;font-size:.68rem;line-height:1.45;color:var(--text-secondary)}
+        .auth-message.error{color:#fda4af}.auth-message.success{color:#a7f3d0}
+        .auth-privacy{margin-top:10px;padding:9px 10px;border-radius:10px;background:rgba(52,211,153,.045);border:1px solid rgba(52,211,153,.12);color:#b7f7d8;font-size:.61rem;line-height:1.5}
+        .auth-logged-panel{display:none;gap:10px}.auth-logged-panel.show{display:grid}
+        .auth-profile{padding:11px;border-radius:12px;background:rgba(8,12,24,.35);border:1px solid rgba(148,163,200,.07)}
+        .auth-profile-name{font-size:.86rem;font-weight:900;color:var(--text-primary)}
+        .auth-profile-email{margin-top:3px;color:var(--text-secondary);font-size:.68rem}
+        .auth-logout{height:42px;border:1px solid rgba(244,63,94,.28);border-radius:11px;background:rgba(244,63,94,.08);color:#fda4af;font:inherit;font-weight:800;cursor:pointer}
+        @media(max-width:600px){.auth-user-area{width:100%;justify-content:flex-end}.auth-btn{flex:1}.auth-user-badge{flex:1;justify-content:center}.auth-card{padding:18px}}
+
+
+/* Arabic RTL presentation layer — no JavaScript/detection changes */
+html{direction:rtl}
+body{direction:rtl;text-align:right}
+html[dir="ltr"]{direction:ltr}
+html[dir="ltr"] body{direction:ltr;text-align:left}
+html[dir="ltr"] .app{direction:ltr}
+html[dir="ltr"] .header,html[dir="ltr"] .sub,html[dir="ltr"] .top-tools,html[dir="ltr"] .driver-mode-header,html[dir="ltr"] .pro-card-header,html[dir="ltr"] .session-bar,html[dir="ltr"] .quick-guide,html[dir="ltr"] .stats-footer{direction:ltr}
+html[dir="ltr"] .header-left,html[dir="ltr"] .live-indicator,html[dir="ltr"] .tool-actions,html[dir="ltr"] .feature-card,html[dir="ltr"] .status-item,html[dir="ltr"] .settings-row,html[dir="ltr"] .settings-row label,html[dir="ltr"] .stats-footer .stat-group,html[dir="ltr"] .driver-mode-title,html[dir="ltr"] .driver-mode-toggle,html[dir="ltr"] .quality-row,html[dir="ltr"] .system-status,html[dir="ltr"] .alert-center,html[dir="ltr"] .session-actions,html[dir="ltr"] .account-data-actions,html[dir="ltr"] .auth-user-area,html[dir="ltr"] .auth-card-header{direction:ltr}
+html[dir="ltr"] .header-left{text-align:left}
+html[dir="ltr"] .header-badge{flex-direction:row}
+html[dir="ltr"] .sub .stats-mini{direction:ltr}
+html[dir="ltr"] .quick-guide-text,html[dir="ltr"] .privacy-panel,html[dir="ltr"] .account-data-note,html[dir="ltr"] .auth-message,html[dir="ltr"] .auth-privacy{text-align:left}
+html[dir="ltr"] .history-item{text-align:left;direction:ltr}
+html[dir="ltr"] .auth-modal{direction:ltr}
+html[dir="ltr"] .auth-card{text-align:left}
+html[dir="ltr"] .auth-tabs{direction:ltr}
+html[dir="ltr"] .auth-field{text-align:left}
+html[dir="ltr"] .auth-field input{text-align:left}
+html[dir="ltr"] .auth-submit,html[dir="ltr"] .auth-logout,html[dir="ltr"] .account-data-btn,html[dir="ltr"] .tool-btn,html[dir="ltr"] .btn,html[dir="ltr"] .small-btn{direction:ltr}
+
+.app{direction:rtl}
+.header,.sub,.top-tools,.driver-mode-header,.pro-card-header,.session-bar,.quick-guide,.stats-footer{direction:rtl}
+.header-left,.live-indicator,.tool-actions,.feature-card,.status-item,.settings-row,.settings-row label,.stats-footer .stat-group,.driver-mode-title,.driver-mode-toggle,.quality-row,.system-status,.alert-center,.session-actions,.account-data-actions,.auth-user-area,.auth-card-header{direction:rtl}
+.status-value,#timerDisplay,#distanceDisplay,#earDisplay,#alarmCountdown,#sessionTimer,.metric-value,.session-clock,.history-item,.range-value{direction:ltr;unicode-bidi:plaintext}
+input[type="range"]{direction:ltr}
+.header-left{text-align:right}
+.header-badge{flex-direction:row-reverse}
+.sub .stats-mini{direction:rtl}
+.status-panel,.feature-strip,.dashboard-grid,.metric-grid,.account-data-grid,.driver-status-grid{direction:rtl}
+.quick-guide-text,.privacy-panel,.account-data-note,.auth-message,.auth-privacy{ text-align:right }
+.history-item{text-align:right}
+.auth-modal{direction:rtl}.auth-card{text-align:right}.auth-tabs{direction:rtl}.auth-field{text-align:right}.auth-field input{text-align:right}.auth-field input::placeholder{text-align:right}
+.auth-submit,.auth-logout,.account-data-btn,.tool-btn,.btn,.small-btn{direction:rtl}
+#video,#output{direction:ltr}
+
+    
+        .drowsiness-warning-overlay {
+            position: fixed; inset: 0; z-index: 99999; display: none;
+            align-items: center; justify-content: center; padding: 20px; direction: rtl;
+            background: rgba(2, 6, 23, .72); backdrop-filter: blur(7px);
+            -webkit-backdrop-filter: blur(7px); pointer-events: none;
+        }
+        .drowsiness-warning-overlay.show { display: flex; animation: drowsinessOverlayIn .18s ease-out; }
+        .drowsiness-warning-card {
+            width: min(560px, calc(100vw - 36px)); padding: 30px 26px 28px;
+            border: 2px solid rgba(248,113,113,.9); border-radius: 22px;
+            background: linear-gradient(145deg, rgba(69,10,10,.97), rgba(24,8,12,.98));
+            box-shadow: 0 0 0 1px rgba(248,113,113,.12), 0 20px 70px rgba(0,0,0,.55), 0 0 45px rgba(239,68,68,.28);
+            text-align: center; animation: drowsinessWarningPulse 1s ease-in-out infinite;
+        }
+        .drowsiness-warning-icon { font-size: clamp(2.5rem,8vw,4.2rem); line-height:1; margin-bottom:13px; }
+        .drowsiness-warning-title { color:#fee2e2; font-size:clamp(1.8rem,5vw,2.9rem); line-height:1.15; font-weight:950; margin-bottom:9px; }
+        .drowsiness-warning-subtitle { color:#fca5a5; font-size:clamp(.78rem,2.3vw,1.05rem); font-weight:900; letter-spacing:.12em; direction:ltr; margin-bottom:15px; }
+        .drowsiness-warning-message { color:#fecaca; font-size:clamp(.95rem,2.8vw,1.2rem); font-weight:800; }
+        @keyframes drowsinessOverlayIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+        @keyframes drowsinessWarningPulse { 0%,100%{box-shadow:0 0 0 1px rgba(248,113,113,.12),0 20px 70px rgba(0,0,0,.55),0 0 30px rgba(239,68,68,.22)} 50%{box-shadow:0 0 0 1px rgba(248,113,113,.22),0 20px 70px rgba(0,0,0,.55),0 0 58px rgba(239,68,68,.42)} }
+        @media(max-width:600px){.drowsiness-warning-card{padding:25px 18px 23px;border-radius:18px}}
+
+        /* ===== DROWSINESS WARNING WINDOW ===== */
+        .drowsiness-warning-overlay {
+            position: fixed; inset: 0; z-index: 99999; display: none;
+            align-items: center; justify-content: center; padding: 20px;
+            direction: rtl; background: rgba(2,6,23,.76);
+            backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+            pointer-events: none;
+        }
+        .drowsiness-warning-overlay.show { display: flex; animation: drowsinessWarningIn .16s ease-out; }
+        .drowsiness-warning-card {
+            width: min(560px,calc(100vw - 36px)); padding: 30px 24px 27px;
+            text-align: center; border-radius: 22px;
+            border: 2px solid rgba(248,113,113,.92);
+            background: linear-gradient(145deg,rgba(69,10,10,.98),rgba(24,8,12,.98));
+            box-shadow: 0 20px 70px rgba(0,0,0,.58),0 0 55px rgba(239,68,68,.34);
+            animation: drowsinessWarningPulse 1s ease-in-out infinite;
+        }
+        .drowsiness-warning-icon { font-size: clamp(2.7rem,8vw,4.3rem); line-height:1; margin-bottom:12px; }
+        .drowsiness-warning-title { color:#fee2e2; font-size:clamp(1.8rem,5vw,2.8rem); line-height:1.15; font-weight:950; margin-bottom:9px; }
+        .drowsiness-warning-subtitle { color:#fca5a5; direction:ltr; font-size:clamp(.78rem,2.4vw,1.05rem); font-weight:900; letter-spacing:.12em; margin-bottom:14px; }
+        .drowsiness-warning-message { color:#fecaca; font-size:clamp(.95rem,2.8vw,1.18rem); font-weight:800; }
+        @keyframes drowsinessWarningIn { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+        @keyframes drowsinessWarningPulse {
+            0%,100%{box-shadow:0 20px 70px rgba(0,0,0,.58),0 0 30px rgba(239,68,68,.22)}
+            50%{box-shadow:0 20px 70px rgba(0,0,0,.58),0 0 58px rgba(239,68,68,.42)}
+        }
+        @media (max-width:600px){ .drowsiness-warning-card{padding:25px 18px 23px;border-radius:18px} }
+
+        /* ============================================================
+           V2 PROFESSIONAL DRIVER SAFETY ENGINE UI
+           ============================================================ */
+        .risk-card{position:relative;overflow:hidden;margin-top:12px;border:1px solid rgba(96,165,250,.18);border-radius:16px;background:linear-gradient(145deg,rgba(17,24,39,.94),rgba(8,12,24,.78));padding:14px}
+        .risk-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 15% 10%,rgba(34,211,238,.08),transparent 34%),radial-gradient(circle at 90% 90%,rgba(59,130,246,.07),transparent 38%);pointer-events:none}
+        .risk-header{position:relative;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+        .risk-title{font-size:.86rem;font-weight:900}.risk-sub{font-size:.62rem;color:var(--text-secondary);margin-top:3px}
+        .risk-state{padding:5px 9px;border-radius:999px;border:1px solid var(--line-soft);font-size:.62rem;font-weight:900;white-space:nowrap}
+        .risk-state.safe{color:#a7f3d0;background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.2)}
+        .risk-state.low{color:#bae6fd;background:rgba(34,211,238,.08);border-color:rgba(34,211,238,.2)}
+        .risk-state.moderate{color:#fde68a;background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.2)}
+        .risk-state.high,.risk-state.critical{color:#fecdd3;background:rgba(244,63,94,.1);border-color:rgba(244,63,94,.24)}
+        .risk-main{position:relative;display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:center}
+        .risk-ring{width:116px;height:116px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--accent-green) 0deg,rgba(148,163,200,.1) 0deg);position:relative}
+        .risk-ring::after{content:"";position:absolute;inset:9px;border-radius:50%;background:#0b1120;border:1px solid rgba(148,163,200,.08)}
+        .risk-ring strong{position:relative;z-index:1;font-size:1.55rem;font-variant-numeric:tabular-nums}
+        .risk-ring small{position:absolute;z-index:2;transform:translateY(28px);font-size:.5rem;color:var(--text-secondary);font-weight:800}
+        .risk-factors{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+        .risk-factor{padding:8px;border-radius:10px;background:rgba(8,12,24,.38);border:1px solid rgba(148,163,200,.07)}
+        .risk-factor span{display:block;font-size:.55rem;color:var(--text-secondary)}.risk-factor strong{display:block;margin-top:4px;font-size:.78rem;font-variant-numeric:tabular-nums}
+        .risk-progress{height:7px;border-radius:99px;background:rgba(148,163,200,.1);overflow:hidden;margin-top:11px}.risk-progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent-green),var(--accent-cyan),var(--accent-rose));transition:width .25s ease}
+        .calibration-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;font-size:.6rem;color:var(--text-secondary)}
+        .calibration-btn{border:1px solid rgba(96,165,250,.2);background:rgba(59,130,246,.08);color:var(--text-primary);border-radius:9px;padding:6px 9px;font:inherit;font-weight:800;cursor:pointer}.calibration-btn:hover{background:rgba(59,130,246,.14)}
+        .calibration-status{font-weight:800;color:#a7f3d0}
+        .telemetry-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:12px}
+        .telemetry-item{padding:8px;border-radius:10px;background:rgba(8,12,24,.34);border:1px solid rgba(148,163,200,.07)}
+        .telemetry-item small{display:block;color:var(--text-secondary);font-size:.52rem}.telemetry-item strong{display:block;margin-top:3px;font-size:.72rem}
+        .privacy-note{font-size:.56rem;color:var(--text-secondary);margin-top:9px;line-height:1.5}
+        .alarm-level-2 #alarmWarning{animation:alarmPulseHard .42s ease-in-out infinite alternate}
+        .alarm-level-3 #alarmWarning{animation:alarmPulseCritical .24s ease-in-out infinite alternate}
+        @keyframes alarmPulseHard{from{filter:brightness(1)}to{filter:brightness(1.25);transform:scale(1.01)}}
+        @keyframes alarmPulseCritical{from{filter:brightness(1)}to{filter:brightness(1.45);transform:scale(1.02)}}
+        .calibration-active .video-wrapper{box-shadow:0 0 0 2px rgba(34,211,238,.22),0 0 45px rgba(34,211,238,.13)}
+        @media(max-width:760px){.risk-main{grid-template-columns:1fr}.risk-ring{margin:auto}.risk-factors{grid-template-columns:repeat(2,1fr)}.telemetry-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:420px){.risk-factors{grid-template-columns:1fr 1fr}.telemetry-grid{grid-template-columns:1fr 1fr}.risk-card{padding:11px}}
+
+        .language-switcher{display:inline-flex;align-items:center;gap:4px;padding:4px 5px;border:1px solid rgba(148,163,200,.16);background:rgba(8,12,24,.38);border-radius:11px;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+        .language-switcher .language-icon{font-size:.8rem;opacity:.85;padding:0 2px}
+        .language-switcher button{border:0;background:transparent;color:var(--text-secondary);font:800 .62rem/1 var(--font);padding:6px 7px;border-radius:7px;cursor:pointer;transition:all .2s ease;letter-spacing:.02em}
+        .language-switcher button:hover{color:var(--text-primary);background:rgba(59,130,246,.12)}
+        .language-switcher button.active{color:#fff;background:linear-gradient(135deg,rgba(59,130,246,.9),rgba(34,211,238,.65));box-shadow:0 4px 14px rgba(59,130,246,.22)}
+        html[dir="ltr"] .language-switcher{direction:ltr}
+        @media(max-width:760px){.language-switcher{order:3}.tool-actions{width:100%}.tool-actions .language-switcher{margin-inline-start:auto}}
+
+    </style>
+</head>
+<body>
+
+    <div class="app">
+
+        <!-- ====== HEADER ====== -->
+        <div class="header">
+            <div class="header-left">
+                <span class="logo-icon">⏰</span>
+<span class="copyright-text">
+    Anti Sleep System by MADOUNINE HACENE
+    <img src="Algeria Heart Flag.png" alt="Algeria" class="algeria-flag">
+</span>
+            </div>
+            <div class="header-badge">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusLabel">غير نشط</span>
+            </div>
+        </div>
+
+        <div class="sub">
+            <span>WebRTC + MediaPipe FaceMesh + Canvas API + Web Audio API + AI </span>
+            <div class="stats-mini">
+                <span>🔄 <strong id="totalBlinks">0</strong></span>
+                <span>⏱️ <strong id="avgDuration">0.0</strong>ث</span>
+            </div>
+        </div>
+
+
+        <!-- ====== PRO TOOLBAR ====== -->
+        <div class="top-tools">
+            <div class="live-indicator">
+                <span class="live-bar"></span>
+                <span>نظام المراقبة:</span>
+                <strong id="uiModeLabel">الوضع الذكي</strong>
+            </div>
+            <div class="tool-actions">
+                <div class="auth-user-area" id="authUserArea">
+                    <span class="auth-user-badge" id="authUserBadge">
+                        <span class="auth-user-dot"></span>
+                        <span id="authUserName">حساب</span>
+                    </span>
+                </div>
+                <button class="tool-btn" id="compactBtn" type="button">▦ واجهة مختصرة</button>
+                <button class="tool-btn" id="authAccountBtnToolbar" type="button">👤 حساب</button>
+            </div>
+        </div>
+
+        <!-- ====== DRIVER MONITORING MODE ====== -->
+        <section class="driver-mode-card" aria-labelledby="driverModeTitle">
+            <div class="driver-mode-header">
+                <div>
+                    <div class="driver-mode-title" id="driverModeTitle">
+                        <span>🚗</span>
+                        <span>Driver Monitoring Mode</span>
+                    </div>
+                    <p class="driver-mode-sub">
+                        يمنع إطفاء الشاشة تلقائياً أثناء المراقبة عند تفعيل الوضع.
+                    </p>
+                </div>
+
+                <button
+                    class="driver-mode-toggle"
+                    id="driverModeToggle"
+                    type="button"
+                    aria-pressed="false"
+                    title="تفعيل أو إيقاف وضع مراقبة السائق">
+                    <span id="driverModeText">تفعيل الوضع</span>
+                    <span class="driver-switch" aria-hidden="true"></span>
+                </button>
+            </div>
+
+            <div class="driver-status-grid">
+                <div class="driver-status-item">
+                    <span class="driver-status-label">Driver Mode</span>
+                    <span class="driver-status-value off" id="driverModeHealth">غير نشط</span>
+                </div>
+                <div class="driver-status-item">
+                    <span class="driver-status-label">Screen Wake Lock</span>
+                    <span class="driver-status-value off" id="wakeLockHealth">غير نشط</span>
+                </div>
+                <div class="driver-status-item">
+                    <span class="driver-status-label">Monitoring</span>
+                    <span class="driver-status-value off" id="driverMonitoringHealth">جاهز</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== FEATURE OVERVIEW ====== -->
+        <div class="feature-strip">
+            <div class="feature-card">
+                <span class="feature-icon">🧠</span>
+                <span class="feature-title">تحليل ذكي</span>
+                <span class="feature-desc">FaceMesh لتحليل نقاط الوجه ومراقبة العين بشكل لحظي.</span>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">👁️</span>
+                <span class="feature-title">مراقبة EAR</span>
+                <span class="feature-desc">عرض نسبة العين والمسافة العمودية لمتابعة الإغلاق.</span>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">🔊</span>
+                <span class="feature-title">إنذار فوري</span>
+                <span class="feature-desc">تنبيه صوتي ومرئي عند تجاوز حد الإغلاق المحدد.</span>
+            </div>
+            <div class="feature-card">
+                <span class="feature-icon">📊</span>
+                <span class="feature-title">إحصائيات الجلسة</span>
+                <span class="feature-desc">عدد الإغلاقات والإنذارات والمتوسط وأطول مدة.</span>
+            </div>
+        </div>
+
+        <!-- ====== VIDEO ====== -->
+        <div class="video-wrapper">
+            <video id="video" playsinline></video>
+            <canvas id="output"></canvas>
+        </div>
+
+        <!-- ====== STATUS PANEL ====== -->
+        <div class="status-panel" id="statusPanel">
+            <div class="status-item">
+                <div class="status-label">حالة العينين</div>
+                <div class="status-value" id="eyeState">👁️ مفتوحة</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">مدة إغلاق العين</div>
+                <div class="status-value" id="timerDisplay">0.0 ث</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">المسافة (y)</div>
+                <div class="status-value" id="distanceDisplay">--</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">نسبة العين (EAR)</div>
+                <div class="status-value" id="earDisplay">--</div>
+            </div>
+            <div class="status-item">
+                <div class="status-label">الإنذار خلال</div>
+                <div class="status-value" id="alarmCountdown">--</div>
+            </div>
+        </div>
+
+        <!-- ====== ALARM WARNING ====== -->
+        <div id="alarmWarning">
+            <span>🔊</span> إنذار! استيقظ فوراً
+            <span style="font-size:0.8rem; opacity:0.7;" id="alarmDurationDisplay"></span>
+        </div>
+
+        <!-- ====== CONTROLS ====== -->
+        <div class="controls">
+            <button class="btn btn-primary" id="startBtn">▶ بدء الكاميرا</button>
+            <button class="btn btn-danger" id="stopBtn" disabled>⏹ إيقاف</button>
+        </div>
+
+        <!-- ====== SETTINGS ====== -->
+        <div class="settings-row">
+            <label>
+                ⏱️ حد الإنذار (ثانية)
+                <input type="range" id="thresholdSlider" min="0.5" max="4.0" step="0.1" value="2" />
+                <span class="range-value" id="thresholdValue">2</span>ث
+            </label>
+            <label>
+                🎯 عتبة EAR
+                <input type="range" id="earThresholdSlider" min="0.10" max="0.40" step="0.01" value="0.12" />
+                <span class="range-value" id="earThresholdValue">0.12</span>
+            </label>
+            <label>
+                🔊 الصوت
+                <button class="mute-btn" id="muteBtn">🔊 غير مكتوم</button>
+            </label>
+            <label>
+                <span style="color:var(--text-secondary);">📊</span>
+                <button class="btn btn-outline" id="resetStatsBtn" style="padding:4px 16px; font-size:0.75rem;">إعادة الإحصائيات</button>
+            </label>
+        </div>
+
+
+        <!-- ====== V2 DRIVER SAFETY ENGINE ====== -->
+        <section class="risk-card" id="riskCard" aria-live="polite">
+            <div class="risk-header">
+                <div>
+                    <div class="risk-title">🧠 تقييم خطر النعاس</div>
+                    <div class="risk-sub">تحليل محلي يجمع EAR + PERCLOS + مدة الإغلاق + وضعية الرأس</div>
+                </div>
+                <span class="risk-state safe" id="riskState">SAFE</span>
+            </div>
+            <div class="risk-main">
+                <div class="risk-ring" id="riskRing"><strong id="riskScore">0</strong><small>/ 100</small></div>
+                <div>
+                    <div class="risk-factors">
+                        <div class="risk-factor"><span>EAR</span><strong id="riskEar">--</strong></div>
+                        <div class="risk-factor"><span>PERCLOS</span><strong id="riskPerclos">0%</strong></div>
+                        <div class="risk-factor"><span>إغلاق طويل</span><strong id="riskClosure">0.0ث</strong></div>
+                        <div class="risk-factor"><span>الرأس</span><strong id="riskHead">مستقيم</strong></div>
+                        <div class="risk-factor"><span>Yaw</span><strong id="riskYaw">0°</strong></div>
+                        <div class="risk-factor"><span>Pitch</span><strong id="riskPitch">0°</strong></div>
+                    </div>
+                    <div class="risk-progress"><i id="riskProgress"></i></div>
+                    <div class="calibration-row">
+                        <button class="calibration-btn" id="calibrateBtn" type="button">🎯 معايرة تلقائية</button>
+                        <span id="calibrationStatus" class="calibration-status">المعايرة الافتراضية</span>
+                        <span id="adaptiveThresholdLabel">عتبة تكيفية: --</span>
+                    </div>
+                </div>
+            </div>
+            <div class="telemetry-grid">
+                <div class="telemetry-item"><small>العين اليمنى</small><strong id="leftEarValue">--</strong></div>
+                <div class="telemetry-item"><small>العين اليسرى</small><strong id="rightEarValue">--</strong></div>
+                <div class="telemetry-item"><small>الرمشات</small><strong id="blinkRateValue">0 / دقيقة</strong></div>
+                <div class="telemetry-item"><small>جودة الوجه</small><strong id="faceQualityValue">--</strong></div>
+            </div>
+            <div class="privacy-note">🔒 لا يتم إرسال الفيديو أو صور الوجه أو landmarks أو عينات EAR الخام إلى الخادم. يتم إرسال ملخصات الجلسة فقط عند تسجيل المستخدم.</div>
+        </section>
+
+        <!-- ====== STATS FOOTER ====== -->
+        <div class="stats-footer">
+            <div class="stat-group">
+                <span>🚨 <strong id="alarmCount">0</strong> إنذار</span>
+                <span>😴 <strong id="closedCount">0</strong> إغلاق</span>
+            </div>
+            <div class="stat-group">
+                <span>⏳ أطول إغلاق للعين: <strong id="maxDuration">0.0</strong>ث</span>
+                <span>📈 متوسط: <strong id="avgDurationFooter">0.0</strong>ث</span>
+            </div>
+        </div>
+
+
+
+        <!-- ====== ADVANCED ANALYTICS ====== -->
+        <div class="dashboard-grid" id="advancedDashboard">
+            <section class="pro-card">
+                <div class="pro-card-header">
+                    <div class="pro-card-title">📈 تحليل EAR المباشر</div>
+                    <div class="pro-card-sub">آخر 60 قراءة</div>
+                </div>
+                <div class="chart-wrap">
+                    <canvas id="earChart" width="700" height="180"></canvas>
+                    <div class="chart-empty" id="chartEmpty">ابدأ الكاميرا لعرض البيانات</div>
+                </div>
+                <div class="metric-grid" style="margin-top:8px;">
+                    <div class="metric"><span class="metric-label">EAR الحالي</span><span class="metric-value" id="analyticsEar">--</span></div>
+                    <div class="metric"><span class="metric-label">أدنى EAR</span><span class="metric-value" id="minEar">--</span></div>
+                    <div class="metric"><span class="metric-label">متوسط EAR</span><span class="metric-value" id="avgEar">--</span></div>
+                </div>
+            </section>
+
+            <section class="pro-card">
+                <div class="pro-card-header">
+                    <div class="pro-card-title">🧠 جودة التتبع</div>
+                    <div class="pro-card-sub">Live</div>
+                </div>
+                <div class="quality-row">
+                    <div class="quality-ring" id="qualityRing"><strong id="qualityPercent">0%</strong></div>
+                    <div class="quality-text">
+                        <strong id="qualityLabel">في انتظار الكاميرا</strong>
+                        <span id="qualityDetail">ابدأ النظام للحصول على تقييم التتبع.</span>
+                    </div>
+                </div>
+                <div class="mini-progress"><i id="qualityProgress"></i></div>
+                <div class="system-list" style="margin-top:9px;">
+                    <div class="system-row"><span>📷 الكاميرا</span><span class="system-status" id="cameraHealth">جاهز</span></div>
+                    <div class="system-row"><span>👤 الوجه</span><span class="system-status" id="faceHealth">انتظار</span></div>
+                    <div class="system-row"><span>👁️ تتبع العين</span><span class="system-status" id="eyeHealth">انتظار</span></div>
+                    <div class="system-row"><span>🔊 الإنذار الصوتي</span><span class="system-status" id="audioHealth">جاهز</span></div>
+                </div>
+            </section>
+        </div>
+
+        <div class="session-bar">
+            <div class="session-clock"><small>SESSION TIME</small><span id="sessionTimer">00:00:00</span></div>
+            <div class="session-actions">
+                <button class="small-btn" id="exportBtn">📥 تصدير التقرير</button>
+                <button class="small-btn" id="clearHistoryBtn">🗑️ مسح السجل</button>
+            </div>
+        </div>
+
+        <div class="dashboard-grid">
+            <section class="pro-card">
+                <div class="pro-card-header">
+                    <div class="pro-card-title">🚨 مركز التنبيهات</div>
+                    <div class="offline-badge" id="networkBadge">● متصل</div>
+                </div>
+                <div class="alert-center">
+                    <div class="alert-box"><small>آخر إنذار</small><strong id="lastAlert">--</strong></div>
+                    <div class="alert-box"><small>إنذارات الجلسة</small><strong id="sessionAlerts">0</strong></div>
+                    <div class="alert-box"><small>إجمالي زمن الإنذار</small><strong id="totalAlertTime">0.0 ث</strong></div>
+                    <div class="alert-box"><small>FPS تقريبي</small><strong id="fpsValue">--</strong></div>
+                </div>
+                <div class="privacy-panel">🔒 <strong>الخصوصية:</strong> المعالجة تتم داخل المتصفح، لا يتم رفع فيديو الكاميرا بواسطة هذا التطبيق</div>
+            </section>
+
+            <section class="pro-card">
+                <div class="pro-card-header">
+                    <div class="pro-card-title">⚡ حالة النظام</div>
+                    <div class="pro-card-sub" id="performanceLabel">Monitoring</div>
+                </div>
+                <div class="system-list">
+                    <div class="system-row"><span>Web App</span><span class="system-status ok" id="webHealth">Active</span></div>
+                    <div class="system-row"><span>Service Worker</span><span class="system-status" id="swHealth">Checking</span></div>
+                    <div class="system-row"><span>Offline Ready</span><span class="system-status" id="offlineHealth">Checking</span></div>
+                    <div class="system-row"><span>Reduced Motion</span><span class="system-status ok" id="motionHealth">Supported</span></div>
+                </div>
+            </section>
+        </div>
+
+        <section class="pro-card history-card">
+            <div class="pro-card-header">
+                <div class="pro-card-title">🕘 سجل الجلسات</div>
+                <div class="pro-card-sub" id="historySourceLabel">محلي على جهازك</div>
+            </div>
+            <div class="history-list" id="historyList"><div class="empty-history">لا توجد جلسات محفوظة بعد.</div></div>
+        </section>
+
+        <!-- ====== ACCOUNT DATA DASHBOARD ====== -->
+        <section class="pro-card account-data-card" id="accountDataCard">
+            <div class="pro-card-header">
+                <div class="pro-card-title">☁️ بيانات حسابك</div>
+                <div class="pro-card-sub cloud-history-note">إحصائيات</div>
+            </div>
+            <div class="account-data-grid">
+                <div class="account-data-stat"><small>جلسات محفوظة</small><strong id="cloudSessionCount">0</strong></div>
+                <div class="account-data-stat"><small>وقت المراقبة</small><strong id="cloudMonitoringTime">0د</strong></div>
+                <div class="account-data-stat"><small>إجمالي التنبيهات</small><strong id="cloudAlertCount">0</strong></div>
+                <div class="account-data-stat"><small>متوسط الجلسة</small><strong id="cloudAverageSession">0د</strong></div>
+            </div>
+            <div class="account-data-actions">
+                <button class="account-data-btn" id="refreshCloudDataBtn" type="button">↻ مزامنة البيانات</button>
+                <button class="account-data-btn danger" id="deleteCloudDataBtn" type="button">🗑 حذف بيانات الجلسات من قاعدة البيانات</button>
+            </div>
+            <div class="account-data-note">🔒 التطبيق لا يحتفظ بفيديو التتبع ولا أي صور للوجه ولا أي بيانات حساسة في قاعدة البيانات</div>
+        </section>
+
+        <!-- ====== QUICK GUIDE ====== -->
+        <div class="quick-guide">
+            <div class="quick-guide-text">
+                <strong>نصيحة:</strong> ضع الوجه أمام الكاميرا بإضاءة جيدة وحافظ على مسافة مناسبة للحصول على تتبع أكثر استقراراً.
+            </div>
+            <div class="privacy-badge">قد بحذر من فضلك، عائلتك في إنتظارك</div>
+        </div>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+        <div class="footnote">
+            Anti Sleep System • by MADOUNINE Hacene •
+        </div>
+
+        <div class="footnote">
+            • تحيا الجزائر •
+        </div>
+    </div>
+
+    <!-- ====== INTERNATIONALIZATION ====== -->
+    <script src="./i18n.js"></script>
+
+    <!-- ====== MEDIAPIPE ====== -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js" crossorigin="anonymous">
+    </script>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            //  DOM ELEMENTS
+            // ============================================================
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('output');
+            const ctx = canvas.getContext('2d');
+
+            const eyeStateEl = document.getElementById('eyeState');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const distanceDisplay = document.getElementById('distanceDisplay');
+            const earDisplay = document.getElementById('earDisplay');
+            const alarmWarning = document.getElementById('alarmWarning');
+            const alarmDurationDisplay = document.getElementById('alarmDurationDisplay');
+            const statusPanel = document.getElementById('statusPanel');
+            const alarmCountdown = document.getElementById('alarmCountdown');
+
+            const startBtn = document.getElementById('startBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const muteBtn = document.getElementById('muteBtn');
+            const thresholdSlider = document.getElementById('thresholdSlider');
+            const thresholdValue = document.getElementById('thresholdValue');
+            const earThresholdSlider = document.getElementById('earThresholdSlider');
+            const earThresholdValue = document.getElementById('earThresholdValue');
+            const resetStatsBtn = document.getElementById('resetStatsBtn');
+
+            const statusDot = document.getElementById('statusDot');
+            const statusLabel = document.getElementById('statusLabel');
+
+            // Stats
+            const totalBlinksEl = document.getElementById('totalBlinks');
+            const avgDurationEl = document.getElementById('avgDuration');
+            const alarmCountEl = document.getElementById('alarmCount');
+            const closedCountEl = document.getElementById('closedCount');
+            const maxDurationEl = document.getElementById('maxDuration');
+            const avgDurationFooterEl = document.getElementById('avgDurationFooter');
+
+            // UI enhancement elements (do not affect detection algorithm)
+            const compactBtn = document.getElementById('compactBtn');
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const toast = document.getElementById('toast');
+            const uiModeLabel = document.getElementById('uiModeLabel');
+
+
+            // ============================================================
+            //  UI UTILITIES
+            //  Visual helpers only; detection/state logic is unchanged.
+            // ============================================================
+            let toastTimer = null;
+
+            function showToast(message) {
+                if (!toast) return;
+                toast.textContent = message;
+                toast.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => toast.classList.remove('show'), 1800);
+            }
+
+            function setFullscreen() {
+                const app = document.querySelector('.app');
+                if (!document.fullscreenElement) {
+                    const request = app && app.requestFullscreen ? app.requestFullscreen() : null;
+                    if (request && typeof request.catch === 'function') request.catch(() => {});
+                } else if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(() => {});
+                }
+            }
+
+            function syncFullscreenUI() {
+                const active = !!document.fullscreenElement;
+                if (fullscreenBtn) {
+                    fullscreenBtn.textContent = active ? '⤢ إنهاء الشاشة الكاملة' : '⛶ ملء الشاشة';
+                }
+                document.querySelector('.app')?.classList.toggle('is-fullscreen', active);
+            }
+
+            compactBtn?.addEventListener('click', () => {
+                document.body.classList.toggle('compact-ui');
+                const compact = document.body.classList.contains('compact-ui');
+                compactBtn.textContent = compact ? '▦ واجهة كاملة' : '▦ واجهة مختصرة';
+                uiModeLabel.textContent = compact ? 'الوضع المختصر' : 'الوضع الذكي';
+                showToast(compact ? 'تم تفعيل الواجهة المختصرة' : 'تمت استعادة الواجهة الكاملة');
+            });
+
+            fullscreenBtn?.addEventListener('click', setFullscreen);
+            document.addEventListener('fullscreenchange', syncFullscreenUI);
+
+            window.addEventListener('keydown', (event) => {
+                if (event.key === 'F11') {
+                    event.preventDefault();
+                    setFullscreen();
+                }
+                if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                    compactBtn?.click();
+                }
+            });
+
+            // ============================================================
+            //  V2 STATE — adaptive detection + dual-eye telemetry
+            // ============================================================
+            let blinkStartTime = 0;
+            let isClosed = false;
+            let camera = null;
+            let faceMesh = null;
+            let isRunning = false;
+            let isMuted = false;
+            window.__antiSleepAudioMuted = false;
+            let alarmLevel = 0;
+
+            let stats = {
+                totalBlinks: 0,
+                closedEvents: 0,
+                alarmEvents: 0,
+                durations: [],
+                maxDuration: 0,
+                currentAlarmStart: null,
+            };
+
+            let DROWSY_LIMIT = 2;
+            let EAR_THRESHOLD = 0.12;
+            let adaptiveThreshold = null;
+            let calibrationActive = false;
+            let calibrationStartedAt = 0;
+            let calibrationSamples = [];
+            const CALIBRATION_MS = 8000;
+            // Anti-false-alarm state machine: require sustained evidence before alarming.
+            let alarmCandidateSince = 0;
+            let eyeRecoverySince = 0;
+            const MIN_ALARM_CLOSURE_SEC = 0.9;
+            const ALARM_CONFIRM_MS = 900;
+            const ALARM_RECOVERY_MS = 350;
+
+            const telemetry = window.__antiSleepTelemetry = window.__antiSleepTelemetry || {
+                faceDetected:false, leftEar:null, rightEar:null, avgEar:null,
+                closed:false, closureDuration:0, yaw:0, pitch:0,
+                riskScore:0, perclos:0, blinkRate:0, faceQuality:0,
+                adaptiveThreshold:null, alarmLevel:0, timestamp:0
+            };
+
+            function clamp(value,min,max){ return Math.min(max,Math.max(min,value)); }
+            function getActiveThreshold(){ return Number.isFinite(adaptiveThreshold) ? adaptiveThreshold : EAR_THRESHOLD; }
+
+            function beginCalibration(){
+                calibrationActive = true;
+                calibrationStartedAt = performance.now();
+                calibrationSamples = [];
+                adaptiveThreshold = null;
+                document.body.classList.add('calibration-active');
+                const status = document.getElementById('calibrationStatus');
+                if(status) status.textContent='جاري المعايرة... افتح عينيك وانظر للكاميرا';
+                if(typeof window.showToast==='function') window.showToast('🎯 بدأت المعايرة التلقائية لمدة 8 ثوانٍ');
+            }
+
+            function finishCalibration(force=false){
+                if(!calibrationActive && !force) return;
+                if(calibrationSamples.length >= 8){
+                    const sorted=[...calibrationSamples].sort((a,b)=>a-b);
+                    const median=sorted[Math.floor(sorted.length/2)];
+                    adaptiveThreshold=clamp(median*0.70,0.16,0.30);
+                    const label=document.getElementById('adaptiveThresholdLabel');
+                    if(label) label.textContent='عتبة تكيفية: '+adaptiveThreshold.toFixed(3);
+                    const status=document.getElementById('calibrationStatus');
+                    if(status) status.textContent='✓ تمت المعايرة';
+                } else {
+                    adaptiveThreshold=clamp(EAR_THRESHOLD,0.10,0.40);
+                    const status=document.getElementById('calibrationStatus');
+                    if(status) status.textContent='المعايرة الافتراضية';
+                }
+                calibrationActive=false;
+                document.body.classList.remove('calibration-active');
+                telemetry.adaptiveThreshold=adaptiveThreshold;
+            }
+
+            function resetDetectionProfile(){
+                adaptiveThreshold=null;
+                calibrationActive=false;
+                calibrationSamples=[];
+                document.body.classList.remove('calibration-active');
+                const label=document.getElementById('adaptiveThresholdLabel');
+                if(label) label.textContent='عتبة تكيفية: --';
+                const status=document.getElementById('calibrationStatus');
+                if(status) status.textContent='المعايرة الافتراضية';
+                telemetry.adaptiveThreshold=null;
+            }
+
+            // ============================================================
+            //  AUDIO — three alarm intensity levels
+            // ============================================================
+            let audioCtx = null;
+            let oscillator = null;
+            let gainNode = null;
+
+            function setAlarmLevel(level){
+                alarmLevel=clamp(Math.round(level),1,3);
+                document.body.classList.remove('alarm-level-2','alarm-level-3');
+                if(alarmLevel>=2) document.body.classList.add('alarm-level-2');
+                if(alarmLevel>=3) document.body.classList.add('alarm-level-3');
+                telemetry.alarmLevel=alarmLevel;
+                if(oscillator){
+                    const frequencies={1:880,2:1040,3:1320};
+                    oscillator.frequency.setTargetAtTime(frequencies[alarmLevel],audioCtx.currentTime,0.03);
+                    if(gainNode) gainNode.gain.setTargetAtTime(alarmLevel===1?0.75:alarmLevel===2?0.95:1.15,audioCtx.currentTime,0.03);
+                }
+            }
+
+            function playAlarm(level=1){
+                if(isMuted) return;
+                try{
+                    if(!audioCtx) audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+                    if(audioCtx.state==='suspended') audioCtx.resume();
+                    if(!oscillator){
+                        oscillator=audioCtx.createOscillator();
+                        gainNode=audioCtx.createGain();
+                        oscillator.type='square';
+                        oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+                        oscillator.start();
+                    }
+                    setAlarmLevel(level);
+                    alarmWarning.classList.add('show');
+                    statusPanel.classList.add('alarm-active');
+                    eyeStateEl.textContent='🔴 إنذار!';
+                    eyeStateEl.className='status-value alarm';
+                    if(!stats.currentAlarmStart) stats.currentAlarmStart=performance.now();
+                    const overlay=document.getElementById('drowsinessWarningOverlay');
+                    if(overlay){overlay.classList.add('show');overlay.setAttribute('aria-hidden','false');}
+                }catch(e){ console.warn('تعذر تشغيل الصوت:',e); }
+            }
+
+            function stopAlarm(){
+                if(oscillator){
+                    try{oscillator.stop();oscillator.disconnect();}catch(e){}
+                    oscillator=null;gainNode=null;
+                }
+                alarmWarning.classList.remove('show');
+                statusPanel.classList.remove('alarm-active');
+                document.body.classList.remove('alarm-level-2','alarm-level-3');
+                alarmLevel=0;telemetry.alarmLevel=0;
+                const overlay=document.getElementById('drowsinessWarningOverlay');
+                if(overlay){overlay.classList.remove('show');overlay.setAttribute('aria-hidden','true');}
+                if(stats.currentAlarmStart){stats.alarmEvents++;stats.currentAlarmStart=null;updateStatsUI();}
+            }
+
+            function resumeAudioContext(){ if(audioCtx&&audioCtx.state==='suspended') audioCtx.resume(); }
+            function toggleMute(){
+                isMuted=!isMuted;
+                window.__antiSleepAudioMuted = isMuted;
+                muteBtn.textContent=isMuted?'🔇 مكتوم':'🔊 غير مكتوم';
+                muteBtn.classList.toggle('muted',isMuted);
+                if(isMuted) stopAlarm();
+            }
+
+            // ============================================================
+            //  STATS UI
+            // ============================================================
+            function updateStatsUI(){
+                totalBlinksEl.textContent=stats.totalBlinks;
+                closedCountEl.textContent=stats.closedEvents;
+                alarmCountEl.textContent=stats.alarmEvents;
+                const avg=stats.durations.length?(stats.durations.reduce((a,b)=>a+b,0)/stats.durations.length):0;
+                avgDurationEl.textContent=avg.toFixed(1);
+                avgDurationFooterEl.textContent=avg.toFixed(1);
+                maxDurationEl.textContent=stats.maxDuration.toFixed(1);
+            }
+            function resetStats(){
+                stats={totalBlinks:0,closedEvents:0,alarmEvents:0,durations:[],maxDuration:0,currentAlarmStart:null};
+                updateStatsUI();
+            }
+            function updateCountdown(closedDuration){
+                if(isClosed){
+                    const remaining=Math.max(0,DROWSY_LIMIT-closedDuration);
+                    alarmCountdown.textContent=remaining.toFixed(1)+' ث';
+                    alarmCountdown.style.color=remaining<0.5?'#f43f5e':'#f59e0b';
+                }else{alarmCountdown.textContent='--';alarmCountdown.style.color='';}
+            }
+
+            // ============================================================
+            //  DUAL-EYE EAR
+            // ============================================================
+            function calculateEAR(landmarks,indices){
+                try{
+                    const [outer,inner,upper,lower]=indices.map(i=>landmarks[i]);
+                    if(!outer||!inner||!upper||!lower) return null;
+                    const width=Math.hypot(outer.x-inner.x,outer.y-inner.y);
+                    const height=Math.hypot(upper.x-lower.x,upper.y-lower.y);
+                    return width>0?height/width:null;
+                }catch(e){return null;}
+            }
+            function getEyeAspectRatios(landmarks){
+                const right=calculateEAR(landmarks,[33,133,159,145]);
+                const left=calculateEAR(landmarks,[362,263,386,374]);
+                const values=[right,left].filter(Number.isFinite);
+                return {right,left,average:values.length?values.reduce((a,b)=>a+b,0)/values.length:null};
+            }
+            function estimateHeadPose(landmarks){
+                try{
+                    const nose=landmarks[1], left=landmarks[234], right=landmarks[454], forehead=landmarks[10], chin=landmarks[152];
+                    if(!nose||!left||!right||!forehead||!chin) return {yaw:0,pitch:0};
+                    const dl=Math.max(.001,Math.hypot(nose.x-left.x,nose.y-left.y));
+                    const dr=Math.max(.001,Math.hypot(right.x-nose.x,right.y-nose.y));
+                    const yaw=clamp(((dr-dl)/(dr+dl))*90,-45,45);
+                    const faceHeight=Math.max(.001,chin.y-forehead.y);
+                    const verticalRatio=(nose.y-forehead.y)/faceHeight;
+                    const pitch=clamp((verticalRatio-0.48)*90,-35,35);
+                    return {yaw,pitch};
+                }catch(e){return {yaw:0,pitch:0};}
+            }
+
+            function calculateFaceQuality(landmarks,ear){
+                if(!landmarks||!landmarks.length||!Number.isFinite(ear)) return 0;
+                const nose=landmarks[1], left=landmarks[234], right=landmarks[454];
+                if(!nose||!left||!right) return 40;
+                const width=Math.hypot(right.x-left.x,right.y-left.y);
+                const centered=Math.max(0,1-Math.abs((nose.x-0.5)*1.8));
+                return Math.round(clamp((width>0.12?65:40)+centered*35,0,100));
+            }
+
+            function onResults(results){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                ctx.drawImage(video,0,0,canvas.width,canvas.height);
+                let faceDetected=false;
+
+                if(results.multiFaceLandmarks&&results.multiFaceLandmarks.length>0){
+                    faceDetected=true;
+                    const landmarks=results.multiFaceLandmarks[0];
+                    try{
+                        drawConnectors(ctx,landmarks,FACEMESH_TESSELATION,{color:'#C0C0C080',lineWidth:1});
+                        drawConnectors(ctx,landmarks,FACEMESH_CONTOURS,{color:'#00FFAA',lineWidth:1.5});
+                    }catch(e){}
+
+                    const pTop=landmarks[159],pBottom=landmarks[145];
+                    const eyes=getEyeAspectRatios(landmarks);
+                    const pose=estimateHeadPose(landmarks);
+                    const faceQuality=calculateFaceQuality(landmarks,eyes.average);
+                    const distance=pTop&&pBottom?Math.abs(pTop.y-pBottom.y):null;
+                    if(Number.isFinite(distance)) distanceDisplay.textContent=distance.toFixed(4); else distanceDisplay.textContent='--';
+                    if(Number.isFinite(eyes.average)) earDisplay.textContent=eyes.average.toFixed(3); else earDisplay.textContent='--';
+
+                    if(calibrationActive&&Number.isFinite(eyes.average)&&eyes.average>0.16){
+                        calibrationSamples.push(eyes.average);
+                        if(performance.now()-calibrationStartedAt>=CALIBRATION_MS) finishCalibration();
+                    }
+
+                    const threshold=getActiveThreshold();
+                    const closedCandidates=[eyes.right,eyes.left].filter(Number.isFinite).map(v=>v<threshold);
+                    const isEyeClosed=closedCandidates.length>=2?closedCandidates.every(Boolean):(closedCandidates[0]===true);
+
+                    if(isEyeClosed){
+                        if(!isClosed){blinkStartTime=performance.now();isClosed=true;stats.closedEvents++;stats.totalBlinks++;}
+                        const closedDuration=(performance.now()-blinkStartTime)/1000;
+                        timerDisplay.textContent=closedDuration.toFixed(1)+' ث';
+                        eyeStateEl.textContent='😴 مغلقة';eyeStateEl.className='status-value closed';
+                        updateCountdown(closedDuration);
+                        const now=performance.now();
+                        const riskNow=Number(telemetry.riskScore)||0;
+                        const effectiveLimit=Math.max(Number(DROWSY_LIMIT)||2,MIN_ALARM_CLOSURE_SEC);
+                        const qualityOk=faceQuality>=50 && Math.abs(pose.yaw)<=38 && Math.abs(pose.pitch)<=35;
+                        const strongEvidence=riskNow>=50 || closedDuration>=effectiveLimit+0.75 || (Number(telemetry.perclos)||0)>=12;
+                        if(closedDuration>=effectiveLimit && qualityOk && strongEvidence){
+                            if(!alarmCandidateSince) alarmCandidateSince=now;
+                            const confirmed=(now-alarmCandidateSince)>=ALARM_CONFIRM_MS || closedDuration>=effectiveLimit+1.5;
+                            if(confirmed){
+                                const level=riskNow>=82||closedDuration>=effectiveLimit+2?3:(riskNow>=60||closedDuration>=effectiveLimit+1?2:1);
+                                playAlarm(level);
+                                alarmDurationDisplay.textContent=((now-blinkStartTime)/1000).toFixed(1)+'ث';
+                            }else{
+                                stopAlarm();
+                            }
+                        }else{
+                            alarmCandidateSince=0;
+                            stopAlarm();
+                        }
+                        eyeRecoverySince=0;
+                        telemetry.closureDuration=closedDuration;
+                    }else{
+                        if(isClosed){
+                            const duration=(performance.now()-blinkStartTime)/1000;
+                            if(duration>0.1){stats.durations.push(duration);stats.maxDuration=Math.max(stats.maxDuration,duration);updateStatsUI();}
+                        }
+                        isClosed=false;
+                        alarmCandidateSince=0;
+                        if(alarmWarning.classList.contains('show')){
+                            if(!eyeRecoverySince) eyeRecoverySince=performance.now();
+                            if(performance.now()-eyeRecoverySince>=ALARM_RECOVERY_MS) stopAlarm();
+                        }else{
+                            eyeRecoverySince=0;
+                            stopAlarm();
+                        }
+                        timerDisplay.textContent='0.0 ث';
+                        eyeStateEl.textContent='👁️ مفتوحة';eyeStateEl.className='status-value';
+                        alarmCountdown.textContent='--';alarmDurationDisplay.textContent='';updateCountdown(0);
+                        telemetry.closureDuration=0;
+                    }
+
+                    telemetry.faceDetected=true;
+                    telemetry.leftEar=eyes.right;
+                    telemetry.rightEar=eyes.left;
+                    telemetry.avgEar=eyes.average;
+                    telemetry.closed=isClosed;
+                    telemetry.yaw=pose.yaw;
+                    telemetry.pitch=pose.pitch;
+                    telemetry.faceQuality=faceQuality;
+                    telemetry.timestamp=performance.now();
+                }else{
+                    resetState();
+                    distanceDisplay.textContent='--';earDisplay.textContent='--';
+                    telemetry.faceDetected=false;telemetry.leftEar=null;telemetry.rightEar=null;telemetry.avgEar=null;telemetry.closed=false;telemetry.closureDuration=0;telemetry.faceQuality=0;telemetry.timestamp=performance.now();
+                }
+
+                if(isRunning){statusDot.className='dot';statusLabel.textContent='تشغيل';}
+            }
+
+            function resetState(){
+                if(isClosed){
+                    const duration=(performance.now()-blinkStartTime)/1000;
+                    if(duration>0.1){stats.durations.push(duration);stats.maxDuration=Math.max(stats.maxDuration,duration);updateStatsUI();}
+                }
+                isClosed=false;alarmCandidateSince=0;eyeRecoverySince=0;stopAlarm();timerDisplay.textContent='0.0 ث';eyeStateEl.textContent='👁️ مفتوحة';eyeStateEl.className='status-value';alarmCountdown.textContent='--';alarmDurationDisplay.textContent='';updateCountdown(0);
+                telemetry.closed=false;telemetry.closureDuration=0;
+            }
+
+            function initializeFaceMesh(){
+                faceMesh=new FaceMesh({locateFile:file=>`https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`});
+                faceMesh.setOptions({maxNumFaces:1,refineLandmarks:true,minDetectionConfidence:0.55,minTrackingConfidence:0.55});
+                faceMesh.onResults(onResults);
+            }
+
+            // ============================================================
+            // ============================================================
+            //  CAMERA
+            // ============================================================
+            async function startCamera() {
+                if (camera) {
+                    await stopCamera();
+                }
+
+                canvas.width = 640;
+                canvas.height = 480;
+
+                try {
+                    camera = new Camera(video, {
+                        onFrame: async () => {
+                            if (faceMesh) {
+                                await faceMesh.send({ image: video });
+                            }
+                        },
+                        width: 640,
+                        height: 480,
+                        facingMode: 'user'
+                    });
+
+                    await camera.start();
+
+                    isRunning = true;
+                    startBtn.disabled = true;
+                    stopBtn.disabled = false;
+                    startBtn.textContent = '⏳ جارٍ التشغيل...';
+                    statusDot.className = 'dot';
+                    statusLabel.textContent = 'تشغيل';
+                    resetDetectionProfile();
+                    beginCalibration();
+                    resumeAudioContext();
+                    window.dispatchEvent(new CustomEvent('antiSleepCameraStarted'));
+
+                } catch (err) {
+                    console.error('خطأ في الكاميرا:', err);
+                    alert('تعذر الوصول إلى الكاميرا. تأكد من منح الإذن.');
+                    startBtn.disabled = false;
+                    stopBtn.disabled = true;
+                    startBtn.textContent = '▶ بدء الكاميرا';
+                    isRunning = false;
+                    finishCalibration(true);
+                    statusDot.className = 'dot inactive';
+                    statusLabel.textContent = 'غير نشط';
+                    window.dispatchEvent(new CustomEvent('antiSleepCameraFailed'));
+                }
+            }
+
+            async function stopCamera() {
+                if (camera) {
+                    try {
+                        await camera.stop();
+                    } catch (e) { /* ignore */ }
+                    camera = null;
+                }
+
+                stopAlarm();
+                resetState();
+
+                video.srcObject = null;
+
+                isRunning = false;
+                finishCalibration(true);
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                startBtn.textContent = '▶ بدء الكاميرا';
+                window.dispatchEvent(new CustomEvent('antiSleepCameraStopped'));
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                distanceDisplay.textContent = '--';
+                earDisplay.textContent = '--';
+
+                statusDot.className = 'dot inactive';
+                statusLabel.textContent = 'غير نشط';
+            }
+
+            // ============================================================
+            //  EVENTS
+            // ============================================================
+            startBtn.addEventListener('click', () => {
+                if (!audioCtx) {
+                    audioCtx = new(window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                startCamera();
+            });
+
+            stopBtn.addEventListener('click', stopCamera);
+
+            muteBtn.addEventListener('click', toggleMute);
+
+            thresholdSlider.addEventListener('input', function() {
+                DROWSY_LIMIT = parseFloat(this.value);
+                thresholdValue.textContent = DROWSY_LIMIT.toFixed(1);
+                if (isClosed) {
+                    const closedDuration = (performance.now() - blinkStartTime) / 1000;
+                    updateCountdown(closedDuration);
+                }
+            });
+
+            earThresholdSlider.addEventListener('input', function() {
+                EAR_THRESHOLD = parseFloat(this.value);
+                earThresholdValue.textContent = EAR_THRESHOLD.toFixed(2);
+            });
+
+            resetStatsBtn.addEventListener('click', resetStats);
+
+            // ============================================================
+            //  CLEANUP
+            // ============================================================
+            window.addEventListener('beforeunload', () => {
+                if (camera) {
+                    try { camera.stop(); } catch (e) {}
+                }
+                if (oscillator) {
+                    try { oscillator.stop(); } catch (e) {}
+                }
+                if (audioCtx) {
+                    try { audioCtx.close(); } catch (e) {}
+                }
+            });
+
+            // ============================================================
+            //  INIT
+            // ============================================================
+            initializeFaceMesh();
+            resetStats();
+            statusDot.className = 'dot inactive';
+            statusLabel.textContent = 'غير نشط';
+
+            console.log('✅ موقع الإنذار جاهز! اضغط "بدء الكاميرا".');
+
+        })();
+    </script>
+
+
+<script>
+/* ============================================================
+   V2 ANALYTICS / RISK ENGINE
+   Privacy-first: only aggregated session summaries are persisted.
+   ============================================================ */
+(function(){
+'use strict';
+const $=id=>document.getElementById(id);
+const video=$('video'), startBtn=$('startBtn'), stopBtn=$('stopBtn'), alarmWarning=$('alarmWarning'), alarmCountEl=$('alarmCount'), statusLabel=$('statusLabel'), muteBtn=$('muteBtn');
+const chart=$('earChart'), chartCtx=chart?chart.getContext('2d'):null, chartEmpty=$('chartEmpty');
+const telemetry=window.__antiSleepTelemetry||{};
+const earData=[];
+let minEar=Infinity,earSum=0,earSamples=0;
+let sessionStart=null,sessionElapsedBeforePause=0,sessionActive=false;
+let sessionAlarmCount=0,sessionAlertSeconds=0,lastAlarmState=false,lastAlarmStart=null,lastAlertText='--';
+let sampleHandle=null,fpsFrames=0,fpsLast=performance.now(),fps=0,deferredInstallPrompt=null;
+let perclosSamples=[];let blinkWindow=[];let lastBlinkCount=0;
+
+function formatDateTime(date=new Date()){const pad=n=>String(n).padStart(2,'0');return `${date.getFullYear()}/${pad(date.getMonth()+1)}/${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;}
+function formatTime(sec){sec=Math.max(0,Math.floor(sec));const h=String(Math.floor(sec/3600)).padStart(2,'0'),m=String(Math.floor((sec%3600)/60)).padStart(2,'0'),s=String(sec%60).padStart(2,'0');return `${h}:${m}:${s}`;}
+function sessionSeconds(){return sessionElapsedBeforePause+(sessionActive&&sessionStart?(Date.now()-sessionStart)/1000:0);}
+function updateSessionTimer(){const el=$('sessionTimer');if(el)el.textContent=formatTime(sessionSeconds());}
+function setHealth(id,text,cls){const el=$(id);if(!el)return;el.textContent=text;el.className='system-status '+(cls||'');}
+function showToast(msg){const t=$('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(window.__antiToast);window.__antiToast=setTimeout(()=>t.classList.remove('show'),1800);}
+window.showToast=showToast;
+function drawChart(){if(!chartCtx||!chart)return;const w=chart.width,h=chart.height;chartCtx.clearRect(0,0,w,h);chartCtx.strokeStyle='rgba(148,163,200,.10)';chartCtx.lineWidth=1;for(let i=1;i<5;i++){const y=h/5*i;chartCtx.beginPath();chartCtx.moveTo(0,y);chartCtx.lineTo(w,y);chartCtx.stroke();}if(earData.length<2){if(chartEmpty)chartEmpty.style.display='grid';return;}if(chartEmpty)chartEmpty.style.display='none';const min=.05,max=.45;chartCtx.beginPath();earData.forEach((v,i)=>{const x=i/(Math.max(1,earData.length-1))*w,y=h-((Math.min(max,Math.max(min,v))-min)/(max-min))*h;i?chartCtx.lineTo(x,y):chartCtx.moveTo(x,y);});chartCtx.strokeStyle='#22d3ee';chartCtx.lineWidth=2;chartCtx.stroke();const threshold=Number(telemetry.adaptiveThreshold||$('earThresholdSlider')?.value||.12),ty=h-((threshold-min)/(max-min))*h;chartCtx.setLineDash([5,5]);chartCtx.strokeStyle='rgba(244,63,94,.55)';chartCtx.beginPath();chartCtx.moveTo(0,ty);chartCtx.lineTo(w,ty);chartCtx.stroke();chartCtx.setLineDash([]);}
+function addEarSample(v){if(!Number.isFinite(v))return;earData.push(v);if(earData.length>60)earData.shift();minEar=Math.min(minEar,v);earSum+=v;earSamples++;$('analyticsEar').textContent=v.toFixed(3);$('minEar').textContent=minEar.toFixed(3);$('avgEar').textContent=(earSum/earSamples).toFixed(3);drawChart();}
+function computePerclos(now){perclosSamples.push({t:now,closed:!!telemetry.closed});const cutoff=now-60000;while(perclosSamples.length&&perclosSamples[0].t<cutoff)perclosSamples.shift();if(!perclosSamples.length)return 0;const closed=perclosSamples.reduce((n,x)=>n+(x.closed?1:0),0);return closed/perclosSamples.length*100;}
+let riskEma=0;
+function computeRisk(perclos){
+    const ear=Number(telemetry.avgEar),threshold=Number(telemetry.adaptiveThreshold||$('earThresholdSlider')?.value||.12);
+    const closure=Number(telemetry.closureDuration)||0;
+    const pitch=Math.abs(Number(telemetry.pitch)||0);
+    const yaw=Math.abs(Number(telemetry.yaw)||0);
+    const faceQuality=Number(telemetry.faceQuality)||0;
+    const blinkRate=Number(telemetry.blinkRate)||0;
+    let score=0;
+    if(Number.isFinite(ear) && ear<threshold) score+=Math.min(38,(threshold-ear)/Math.max(.02,threshold)*38);
+    score+=Math.min(26,Math.max(0,(perclos-4)*1.1));
+    if(closure>0) score+=Math.min(25,closure>2?(closure-1)*12.5:closure*6.5);
+    if(pitch>10) score+=Math.min(16,(pitch-10)*.65);
+    if(pitch>20) score+=4;
+    if(blinkRate>0 && blinkRate<6 && perclos>5) score+=6;
+    // Poor tracking lowers confidence instead of creating a false danger signal.
+    if(!telemetry.faceDetected) score=Math.min(score,20);
+    if(faceQuality>0 && faceQuality<50) score*=0.55;
+    if(yaw>38) score*=0.65;
+    score=Math.max(0,Math.min(100,score));
+    riskEma=riskEma===0?score:(riskEma*0.65+score*0.35);
+    return Math.round(Math.max(0,Math.min(100,riskEma)));
+}
+function riskLabel(score){if(score>=80)return ['CRITICAL','critical'];if(score>=60)return ['HIGH','high'];if(score>=40)return ['MODERATE','moderate'];if(score>=20)return ['LOW','low'];return ['SAFE','safe'];}
+function updateRisk(now){const perclos=computePerclos(now);const score=computeRisk(perclos);telemetry.perclos=perclos;telemetry.riskScore=score;const state=riskLabel(score),stateEl=$('riskState');if(stateEl){stateEl.textContent=state[0];stateEl.className='risk-state '+state[1];}const ring=$('riskRing');if(ring)ring.style.background=`conic-gradient(${score>=80?'var(--accent-rose)':score>=40?'var(--accent-amber)':'var(--accent-green)'} ${score*3.6}deg,rgba(148,163,200,.1) ${score*3.6}deg)`;$('riskScore').textContent=score;$('riskProgress').style.width=score+'%';$('riskEar').textContent=Number.isFinite(Number(telemetry.avgEar))?Number(telemetry.avgEar).toFixed(3):'--';$('riskPerclos').textContent=perclos.toFixed(1)+'%';$('riskClosure').textContent=(Number(telemetry.closureDuration)||0).toFixed(1)+'ث';const pitch=Number(telemetry.pitch)||0,yaw=Number(telemetry.yaw)||0;$('riskYaw').textContent=(yaw>=0?'+':'')+yaw.toFixed(0)+'°';$('riskPitch').textContent=(pitch>=0?'+':'')+pitch.toFixed(0)+'°';$('riskHead').textContent=Math.abs(pitch)>12?'منخفض ⚠️':Math.abs(yaw)>30?'مدار ↔':'مستقيم';$('leftEarValue').textContent=Number.isFinite(Number(telemetry.leftEar))?Number(telemetry.leftEar).toFixed(3):'--';$('rightEarValue').textContent=Number.isFinite(Number(telemetry.rightEar))?Number(telemetry.rightEar).toFixed(3):'--';$('faceQualityValue').textContent=Number.isFinite(Number(telemetry.faceQuality))?Number(telemetry.faceQuality)+'%':'--';$('adaptiveThresholdLabel').textContent='عتبة تكيفية: '+(Number.isFinite(Number(telemetry.adaptiveThreshold))?Number(telemetry.adaptiveThreshold).toFixed(3):'--');}
+function updateBlinkRate(now){const current=parseInt($('totalBlinks')?.textContent||'0',10)||0;if(current!==lastBlinkCount){for(let i=lastBlinkCount;i<current;i++)blinkWindow.push(now);lastBlinkCount=current;}const cutoff=now-60000;while(blinkWindow.length&&blinkWindow[0]<cutoff)blinkWindow.shift();$('blinkRateValue').textContent=blinkWindow.length+' / دقيقة';telemetry.blinkRate=blinkWindow.length;}
+function updateQuality(){const running=!!video?.srcObject && !!video && video.readyState>=2,hasFace=!!telemetry.faceDetected,ear=Number(telemetry.avgEar);let score=0;if(running)score+=20;if(hasFace)score+=35;if(Number.isFinite(ear))score+=30;if(video&&video.readyState>=2)score+=15;score=Math.min(100,score);const ring=$('qualityRing');if(ring)ring.style.background=`conic-gradient(var(--accent-green) ${score*3.6}deg,rgba(148,163,200,.12) ${score*3.6}deg)`;$('qualityPercent').textContent=score+'%';$('qualityProgress').style.width=score+'%';let label='في انتظار الكاميرا',detail='ابدأ النظام للحصول على تقييم التتبع.';if(score>=85){label='ممتاز';detail='الوجه والعينان قيد التتبع بشكل مستقر.'}else if(score>=55){label='جيد';detail='التتبع يعمل، حافظ على إضاءة ومسافة ثابتة.'}else if(running){label='يحتاج تحسين';detail='ضع الوجه داخل الإطار وتأكد من الإضاءة.'}$('qualityLabel').textContent=label;$('qualityDetail').textContent=detail;setHealth('cameraHealth',running?'متصل':'جاهز',running?'ok':'');setHealth('faceHealth',hasFace?'مكتشف':'انتظار',hasFace?'ok':'warn');setHealth('eyeHealth',Number.isFinite(ear)?'مستقر':'انتظار',Number.isFinite(ear)?'ok':'warn');setHealth('audioHealth',window.__antiSleepAudioMuted?'مكتوم':'جاهز',window.__antiSleepAudioMuted?'warn':'ok');}
+function tick(){updateSessionTimer();const now=performance.now(),ear=Number(telemetry.avgEar);if(Number.isFinite(ear))addEarSample(ear);updateRisk(now);updateBlinkRate(now);updateQuality();fpsFrames++;if(now-fpsLast>=1000){fps=fpsFrames;fpsFrames=0;fpsLast=now;$('fpsValue').textContent=fps+' FPS';}const alarming=!!alarmWarning?.classList.contains('show');if(alarming&&!lastAlarmState){sessionAlarmCount++;lastAlarmStart=Date.now();lastAlertText=formatDateTime();$('lastAlert').textContent=lastAlertText;$('sessionAlerts').textContent=sessionAlarmCount;}if(!alarming&&lastAlarmState&&lastAlarmStart){sessionAlertSeconds+=(Date.now()-lastAlarmStart)/1000;lastAlarmStart=null;$('totalAlertTime').textContent=sessionAlertSeconds.toFixed(1)+' ث';}lastAlarmState=alarming;}
+function startSession(){if(sessionActive)return;sessionStart=Date.now();sessionActive=true;showToast('تم بدء جلسة المراقبة');}
+function stopSession(save=true){if(!sessionActive&&!sessionStart)return;sessionElapsedBeforePause=sessionSeconds();sessionActive=false;sessionStart=null;if(lastAlarmStart){sessionAlertSeconds+=(Date.now()-lastAlarmStart)/1000;lastAlarmStart=null;}$('totalAlertTime').textContent=sessionAlertSeconds.toFixed(1)+' ث';if(save&&sessionElapsedBeforePause>=1)saveSession();showToast('تم إنهاء جلسة المراقبة');}
+function resetSessionMetrics(){sessionStart=null;sessionElapsedBeforePause=0;sessionActive=false;sessionAlarmCount=0;sessionAlertSeconds=0;lastAlarmStart=null;lastAlarmState=false;earData.length=0;perclosSamples=[];blinkWindow=[];minEar=Infinity;earSum=0;earSamples=0;lastBlinkCount=0;telemetry.perclos=0;telemetry.riskScore=0;riskEma=0;$('sessionAlerts').textContent='0';$('lastAlert').textContent='--';$('totalAlertTime').textContent='0.0 ث';$('riskScore').textContent='0';$('riskPerclos').textContent='0%';updateSessionTimer();drawChart();}
+window.loadHistory=function loadHistory(){let list=[];try{list=JSON.parse(localStorage.getItem('antiSleepSessions')||'[]')}catch(e){}const box=$('historyList');if(!box)return;if(!list.length){box.innerHTML='<div class="empty-history">لا توجد جلسات محفوظة بعد.</div>';return;}box.innerHTML=list.slice(0,12).map(x=>`<div class="history-item"><strong>${x.date}</strong><span>${formatTime(x.duration)}</span><span>🚨 ${x.alerts} • EAR ${x.avgEar||'--'} • Risk ${x.riskScore??'--'}</span></div>`).join('');}
+function saveSession(){const avg=earSamples?(earSum/earSamples).toFixed(3):'--',item={date:formatDateTime(),duration:Math.round(sessionElapsedBeforePause),alerts:sessionAlarmCount,alertSeconds:Number(sessionAlertSeconds.toFixed(1)),avgEar:avg,minEar:minEar===Infinity?'--':minEar.toFixed(3),perclos:Number((telemetry.perclos||0).toFixed(1)),riskScore:Number(telemetry.riskScore||0)};let list=[];try{list=JSON.parse(localStorage.getItem('antiSleepSessions')||'[]')}catch(e){}list.unshift(item);localStorage.setItem('antiSleepSessions',JSON.stringify(list.slice(0,30)));loadHistory();if(typeof window.__antiSleepSaveRemoteSession==='function'){window.__antiSleepSaveRemoteSession({durationSeconds:Math.max(1,Math.round(sessionElapsedBeforePause)),alertCount:Math.max(0,Math.round(sessionAlarmCount)),alertSeconds:Math.max(0,Number(sessionAlertSeconds.toFixed(1))),completed:true,avgEar:Number.isFinite(Number(avg))?Number(avg):null,minEar:minEar===Infinity?null:Number(minEar.toFixed(3)),perclos:Number((telemetry.perclos||0).toFixed(1)),riskScore:Number(telemetry.riskScore||0)});}}
+function exportReport(){const report={application:'Anti Sleep System by MADOUNINE HACENE',version:'2.1',exportedAt:formatDateTime(),sessionDurationSeconds:Math.round(sessionSeconds()),sessionDuration:formatTime(sessionSeconds()),sessionAlerts:sessionAlarmCount,totalAlertSeconds:Number(sessionAlertSeconds.toFixed(1)),totalAlarms:parseInt(alarmCountEl?.textContent||'0',10)||0,averageEAR:earSamples?(earSum/earSamples).toFixed(3):null,minimumEAR:minEar===Infinity?null:Number(minEar.toFixed(3)),perclos:Number((telemetry.perclos||0).toFixed(1)),riskScore:Number(telemetry.riskScore||0),blinkRate:Number(telemetry.blinkRate||0),approximateFPS:fps||null,privacy:'Processed locally in the browser; only aggregated session summaries may be synced.'};const blob=new Blob([JSON.stringify(report,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='anti-sleep-session-report.json';a.click();URL.revokeObjectURL(a.href);showToast('تم تصدير تقرير الجلسة');}
+function updateNetwork(){const b=$('networkBadge');if(!b)return;if(navigator.onLine){b.textContent='● متصل';b.classList.remove('offline')}else{b.textContent='● وضع عدم الاتصال';b.classList.add('offline')}}
+function updateSW(){if(!('serviceWorker'in navigator)){setHealth('swHealth','غير مدعوم','bad');setHealth('offlineHealth','غير متاح','bad');return;}navigator.serviceWorker.register('./sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{setHealth('swHealth','نشط','ok');setHealth('offlineHealth','جاهز','ok')}).catch(()=>{setHealth('swHealth','خطأ','bad');setHealth('offlineHealth','غير مؤكد','warn')});}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredInstallPrompt=e;$('installBtn')?.classList.add('install-btn','show')});$('installBtn')?.addEventListener('click',async()=>{if(!deferredInstallPrompt){showToast('التطبيق مثبت أو التثبيت غير متاح حاليًا');return;}deferredInstallPrompt.prompt();await deferredInstallPrompt.userChoice;deferredInstallPrompt=null;$('installBtn')?.classList.remove('show')});window.addEventListener('appinstalled',()=>{showToast('تم تثبيت Anti Sleep System بنجاح');$('installBtn')?.classList.remove('show')});
+$('exportBtn')?.addEventListener('click',exportReport);$('clearHistoryBtn')?.addEventListener('click',()=>{if(confirm(window.t('هل تريد حذف سجل الجلسات المحفوظ محليًا؟'))){localStorage.removeItem('antiSleepSessions');loadHistory();showToast('تم حذف سجل الجلسات')}});
+startBtn?.addEventListener('click',()=>{resetSessionMetrics();startSession()},{capture:true});stopBtn?.addEventListener('click',()=>{stopSession(true)},{capture:true});window.addEventListener('antiSleepCameraFailed',()=>stopSession(false));window.addEventListener('antiSleepCameraStopped',()=>{if(sessionActive)stopSession(true)});window.addEventListener('online',updateNetwork);window.addEventListener('offline',updateNetwork);
+loadHistory();updateNetwork();updateSW();updateQuality();sampleHandle=setInterval(tick,250);window.addEventListener('beforeunload',()=>{if(sessionActive)stopSession(true);clearInterval(sampleHandle)});
+})();
+</script>
+
+
+<script>
+/* ============================================================
+   DRIVER MONITORING MODE
+   UI/Screen Wake Lock layer only.
+   IMPORTANT: This block does NOT modify the detection engine.
+   ============================================================ */
+(function () {
+    'use strict';
+
+    const toggle = document.getElementById('driverModeToggle');
+    const modeText = document.getElementById('driverModeText');
+    const modeHealth = document.getElementById('driverModeHealth');
+    const wakeHealth = document.getElementById('wakeLockHealth');
+    const monitoringHealth = document.getElementById('driverMonitoringHealth');
+
+    if (!toggle) return;
+
+    let driverModeEnabled = false;
+    let wakeLock = null;
+
+    function setStatus(el, text, state) {
+        if (!el) return;
+        el.textContent = text;
+        el.classList.remove('ok', 'warn', 'off');
+        el.classList.add(state || 'off');
+    }
+
+    function updateUI() {
+        toggle.classList.toggle('active', driverModeEnabled);
+        toggle.setAttribute('aria-pressed', String(driverModeEnabled));
+
+        if (driverModeEnabled) {
+            modeText.textContent = 'الوضع نشط';
+            setStatus(modeHealth, 'نشط', 'ok');
+
+            if (wakeLock && !wakeLock.released) {
+                setStatus(wakeHealth, 'الشاشة مستيقظة', 'ok');
+            } else if ('wakeLock' in navigator) {
+                setStatus(wakeHealth, 'في انتظار التركيز', 'warn');
+            } else {
+                setStatus(wakeHealth, 'غير مدعوم', 'warn');
+            }
+
+            setStatus(monitoringHealth, document.hidden ? 'في الخلفية' : 'جاهز للمراقبة', document.hidden ? 'warn' : 'ok');
+        } else {
+            modeText.textContent = 'تفعيل الوضع';
+            setStatus(modeHealth, 'غير نشط', 'off');
+            setStatus(wakeHealth, 'غير نشط', 'off');
+            setStatus(monitoringHealth, 'جاهز', 'off');
+        }
+    }
+
+    async function requestWakeLock() {
+        if (!driverModeEnabled) return;
+
+        if (!('wakeLock' in navigator)) {
+            setStatus(wakeHealth, 'غير مدعوم', 'warn');
+            return;
+        }
+
+        if (document.visibilityState !== 'visible') {
+            setStatus(wakeHealth, 'في انتظار العودة', 'warn');
+            return;
+        }
+
+        try {
+            if (wakeLock && !wakeLock.released) return;
+
+            wakeLock = await navigator.wakeLock.request('screen');
+
+            wakeLock.addEventListener('release', function () {
+                wakeLock = null;
+
+                if (driverModeEnabled) {
+                    setStatus(wakeHealth, 'تم التحرير مؤقتاً', 'warn');
+                    if (typeof window.showToast === 'function') {
+                        window.showToast('تم تحرير Wake Lock مؤقتاً وسيتم استعادته عند العودة');
+                    }
+                } else {
+                    updateUI();
+                }
+            });
+
+            setStatus(wakeHealth, 'الشاشة مستيقظة', 'ok');
+
+            if (typeof window.showToast === 'function') {
+                window.showToast('🚗 Driver Monitoring Mode مفعل');
+            }
+        } catch (error) {
+            wakeLock = null;
+            setStatus(wakeHealth, 'تعذر التفعيل', 'warn');
+
+            if (typeof window.showToast === 'function') {
+                window.showToast('تعذر تفعيل إبقاء الشاشة مستيقظة');
+            }
+
+            console.warn('Driver Monitoring Wake Lock:', error);
+        }
+    }
+
+    async function releaseWakeLock() {
+        if (!wakeLock) {
+            updateUI();
+            return;
+        }
+
+        try {
+            await wakeLock.release();
+        } catch (error) {
+            console.warn('Wake Lock release:', error);
+        }
+
+        wakeLock = null;
+        updateUI();
+    }
+
+    async function enableDriverMode() {
+        driverModeEnabled = true;
+        updateUI();
+        await requestWakeLock();
+        updateUI();
+    }
+
+    async function disableDriverMode() {
+        driverModeEnabled = false;
+        await releaseWakeLock();
+        updateUI();
+
+        if (typeof window.showToast === 'function') {
+            window.showToast('تم إيقاف Driver Monitoring Mode');
+        }
+    }
+
+    toggle.addEventListener('click', async function () {
+        if (driverModeEnabled) {
+            await disableDriverMode();
+        } else {
+            await enableDriverMode();
+        }
+    });
+
+    document.addEventListener('visibilitychange', async function () {
+        if (!driverModeEnabled) return;
+
+        if (document.visibilityState === 'visible') {
+            /*
+             * Wake Lock is automatically released by the browser when
+             * the document is hidden. Request it again when visible.
+             */
+            await requestWakeLock();
+            setStatus(monitoringHealth, 'جاهز للمراقبة', 'ok');
+        } else {
+            /*
+             * We do NOT pretend that the lock remains active in background.
+             * The browser controls this state.
+             */
+            setStatus(wakeHealth, 'في انتظار العودة', 'warn');
+            setStatus(monitoringHealth, 'في الخلفية', 'warn');
+        }
+    });
+
+    /*
+     * If the browser releases the lock for power/system reasons while
+     * the page remains visible, retry when the page returns to focus.
+     */
+    window.addEventListener('focus', function () {
+        if (driverModeEnabled) requestWakeLock();
+    });
+
+    window.addEventListener('pageshow', function () {
+        if (driverModeEnabled) requestWakeLock();
+    });
+
+    window.addEventListener('pagehide', function () {
+        if (wakeLock) {
+            wakeLock.release().catch(function () {});
+            wakeLock = null;
+        }
+    });
+
+    updateUI();
+})();
+</script>
+
+
+    <!-- ====== AUTH MODAL ====== -->
+
+    <!-- DROWSINESS WARNING OVERLAY -->
+    <div class="drowsiness-warning-overlay" id="drowsinessWarningOverlay" aria-hidden="true">
+        <div class="drowsiness-warning-card" role="alert" aria-live="assertive">
+            <div class="drowsiness-warning-icon">⚠️</div>
+            <div class="drowsiness-warning-title">استيقظ فوراً!</div>
+            <div class="drowsiness-warning-subtitle">DROWSINESS DETECTED</div>
+            <div class="drowsiness-warning-message">افتح عينيك وركز على الطريق</div>
+        </div>
+    </div>
+
+<div class="auth-modal" id="authModal" aria-hidden="true">
+        <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="authTitle">
+            <div class="auth-card-header">
+                <div>
+                    <div class="auth-card-title" id="authTitle">حسابك في Anti Sleep System</div>
+                    <div class="auth-card-sub">أنشئ حسابًا أو سجّل الدخول للوصول إلى حسابك من أي جهاز.</div>
+                </div>
+                <button class="auth-close" id="authCloseBtn" type="button" aria-label="إغلاق">×</button>
+            </div>
+            <div class="auth-tabs" id="authTabs">
+                <button class="auth-tab active" id="loginTab" type="button">تسجيل الدخول</button>
+                <button class="auth-tab" id="registerTab" type="button">إنشاء حساب</button>
+            </div>
+
+            <form class="auth-form" id="loginForm" autocomplete="on">
+                <div class="auth-field"><label for="loginEmail">البريد الإلكتروني</label><input id="loginEmail" name="email" type="email" autocomplete="email" required placeholder="name@example.com"></div>
+                <div class="auth-field"><label for="loginPassword">كلمة المرور</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••"></div>
+                <button class="auth-submit" type="submit">🔐 تسجيل الدخول</button>
+            </form>
+
+            <form class="auth-form" id="registerForm" autocomplete="on" style="display:none">
+                <div class="auth-field"><label for="registerName">الاسم</label><input id="registerName" name="name" type="text" autocomplete="name" required maxlength="60" placeholder="MADOUNINE HACENE"></div>
+                <div class="auth-field"><label for="registerEmail">البريد الإلكتروني</label><input id="registerEmail" name="email" type="email" autocomplete="email" required maxlength="160" placeholder="name@example.com"></div>
+                <div class="auth-field"><label for="registerPassword">كلمة المرور</label><input id="registerPassword" name="password" type="password" autocomplete="new-password" required minlength="8" maxlength="128" placeholder="8 أحرف على الأقل"></div>
+                <button class="auth-submit" type="submit">✨ إنشاء الحساب</button>
+            </form>
+
+            <div class="auth-message" id="authMessage" role="status" aria-live="polite"></div>
+
+            <div class="auth-logged-panel" id="authLoggedPanel">
+                <div class="auth-profile"><div class="auth-profile-name" id="authProfileName">--</div><div class="auth-profile-email" id="authProfileEmail">--</div></div>
+                <button class="auth-logout" id="authLogoutBtn" type="button">↪ تسجيل الخروج</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+/* ============================================================
+   ACCOUNT AUTHENTICATION CLIENT
+   Additive only. It does not touch camera, MediaPipe, EAR,
+   alarm logic, Driver Monitoring Mode, analytics, or PWA logic.
+   ============================================================ */
+(function(){
+    'use strict';
+    const $=id=>document.getElementById(id);
+    const modal=$('authModal'), closeBtn=$('authCloseBtn');
+    const loginTab=$('loginTab'), registerTab=$('registerTab');
+    const loginForm=$('loginForm'), registerForm=$('registerForm');
+    const message=$('authMessage');
+    const toolbarBtn=$('authAccountBtnToolbar');
+    const userArea=$('authUserArea');
+    const userBadge=$('authUserBadge'), userName=$('authUserName');
+    const profileName=$('authProfileName'), profileEmail=$('authProfileEmail');
+    const loggedPanel=$('authLoggedPanel'), tabs=$('authTabs');
+    const logoutBtn=$('authLogoutBtn');
+    const accountDataCard=$('accountDataCard');
+    const cloudSessionCount=$('cloudSessionCount'), cloudMonitoringTime=$('cloudMonitoringTime');
+    const cloudAlertCount=$('cloudAlertCount'), cloudAverageSession=$('cloudAverageSession');
+    const historySourceLabel=$('historySourceLabel');
+    const refreshCloudDataBtn=$('refreshCloudDataBtn'), deleteCloudDataBtn=$('deleteCloudDataBtn');
+    let currentUser=null;
+
+    function setMessage(text,type){
+        if(!message)return;
+        message.textContent=text||'';
+        message.className='auth-message '+(type||'');
+    }
+    function openAuth(mode='login'){
+        modal?.classList.add('show');
+        modal?.setAttribute('aria-hidden','false');
+        setMode(mode); setMessage('');
+        setTimeout(()=>$(mode==='login'?'loginEmail':'registerName')?.focus(),50);
+    }
+    function closeAuth(){
+        modal?.classList.remove('show');
+        modal?.setAttribute('aria-hidden','true');
+    }
+    function setMode(mode){
+        const login=mode==='login';
+        loginTab?.classList.toggle('active',login); registerTab?.classList.toggle('active',!login);
+        if(loginForm)loginForm.style.display=login?'grid':'none';
+        if(registerForm)registerForm.style.display=login?'none':'grid';
+        if(tabs)tabs.style.display=currentUser?'none':'grid';
+        if(loggedPanel)loggedPanel.classList.toggle('show',!!currentUser);
+        if(loginTab)loginTab.disabled=!!currentUser;
+        if(registerTab)registerTab.disabled=!!currentUser;
+    }
+    function setLoading(form,on){
+        const btn=form?.querySelector('button[type="submit"]');
+        if(btn){btn.disabled=on;btn.dataset.oldText ??= btn.textContent;if(on)btn.textContent='⏳ جارٍ التنفيذ...';else btn.textContent=btn.dataset.oldText;}
+    }
+    function updateAuthUI(){
+        if(!userArea)return;
+        userArea.style.display='flex';
+        const logged=!!currentUser;
+        toolbarBtn.textContent=logged?'👤 الحساب':'👤 تسجيل الدخول';
+        userBadge?.classList.toggle('show',logged);
+        if(userName)userName.textContent=logged?(currentUser.name||currentUser.email):'حساب';
+        if(profileName)profileName.textContent=logged?(currentUser.name||'مستخدم'):'--';
+        if(profileEmail)profileEmail.textContent=logged?(currentUser.email||''):'--';
+        accountDataCard?.classList.toggle('show',logged);
+        if(historySourceLabel)historySourceLabel.textContent=logged?'☁️ الحساب + محلي':'محلي على جهازك';
+        window.__antiSleepAuthUser= currentUser || null;
+        if(logged){ setMode('login'); loadCloudData(); }
+        else {
+            if(cloudSessionCount)cloudSessionCount.textContent='0';
+            if(cloudMonitoringTime)cloudMonitoringTime.textContent='0د';
+            if(cloudAlertCount)cloudAlertCount.textContent='0';
+            if(cloudAverageSession)cloudAverageSession.textContent='0د';
+            loadHistory();
+        }
+    }
+    async function api(path,options={}){
+        const res=await fetch(path,{credentials:'include',headers:{'Content-Type':'application/json',...(options.headers||{})},...options});
+        let data=null; try{data=await res.json()}catch(e){}
+        if(!res.ok) throw new Error(data?.message||'حدث خطأ في الخادم');
+        return data;
+    }
+    function formatCloudMinutes(seconds){
+        const total=Math.max(0,Math.round(Number(seconds)||0));
+        const h=Math.floor(total/3600), m=Math.floor((total%3600)/60);
+        if(h>0)return h+' '+(window.getAntiSleepLanguage?.()==='fr'?'h':window.getAntiSleepLanguage?.()==='en'?'h':'س')+' '+m+' '+(window.getAntiSleepLanguage?.()==='ar'?'د':window.getAntiSleepLanguage?.()==='fr'?'min':'min');
+        return m+' '+(window.getAntiSleepLanguage?.()==='ar'?'د':'min');
+    }
+    function renderCloudStats(stats){
+        if(cloudSessionCount)cloudSessionCount.textContent=String(stats?.sessionCount||0);
+        if(cloudMonitoringTime)cloudMonitoringTime.textContent=formatCloudMinutes(stats?.totalDurationSeconds||0);
+        if(cloudAlertCount)cloudAlertCount.textContent=String(stats?.totalAlerts||0);
+        if(cloudAverageSession)cloudAverageSession.textContent=formatCloudMinutes(stats?.averageDurationSeconds||0);
+    }
+    function renderCloudHistory(items){
+        const box=$('historyList'); if(!box)return;
+        if(!Array.isArray(items)||!items.length){
+            loadHistory();
+            return;
+        }
+        box.innerHTML=items.slice(0,30).map(x=>{
+            const date=x.endedAt?new Date(x.endedAt).toLocaleString('en-GB',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}):'--';
+            const dur=formatCloudMinutes(x.durationSeconds);
+            return `<div class="history-item"><strong>${date}</strong><span>${dur}</span><span>🚨 ${Number(x.alertCount||0)} • ${x.completed?'مكتملة':'غير مكتملة'}</span></div>`;
+        }).join('');
+    }
+    async function loadCloudData(){
+        if(!currentUser)return;
+        try{
+            const [stats,sessions]=await Promise.all([api('/api/data/stats'),api('/api/data/sessions?limit=30')]);
+            renderCloudStats(stats);
+            renderCloudHistory(sessions.sessions||[]);
+        }catch(err){
+            console.warn('Cloud data unavailable:',err.message);
+            if(historySourceLabel)historySourceLabel.textContent='محلي — تعذر مزامنة السحابة';
+        }
+    }
+    async function saveRemoteSession(payload){
+        if(!currentUser)return;
+        try{
+            await api('/api/data/sessions',{method:'POST',body:JSON.stringify(payload)});
+            await loadCloudData();
+        }catch(err){
+            console.warn('Remote session was not saved:',err.message);
+        }
+    }
+    window.__antiSleepSaveRemoteSession=saveRemoteSession;
+    refreshCloudDataBtn?.addEventListener('click',async()=>{
+        if(!currentUser)return;
+        refreshCloudDataBtn.disabled=true;
+        try{await loadCloudData();setMessage('تمت مزامنة بيانات الحساب.','success')}finally{refreshCloudDataBtn.disabled=false}
+    });
+    deleteCloudDataBtn?.addEventListener('click',async()=>{
+        if(!currentUser)return;
+        if(!confirm(window.t('سيتم حذف سجل جلسات المراقبة والإحصائيات من MongoDB نهائيًا. هل تريد المتابعة؟')))return;
+        deleteCloudDataBtn.disabled=true;
+        try{
+            await api('/api/data/sessions',{method:'DELETE'});
+            renderCloudStats({});
+            loadHistory();
+            setMessage('تم حذف بيانات المراقبة من MongoDB.','success');
+        }catch(err){setMessage(err.message,'error')}
+        finally{deleteCloudDataBtn.disabled=false}
+    });
+
+    async function refreshUser(){
+        try{const data=await api('/api/auth/me');currentUser=data.user||null}catch(e){currentUser=null}
+        updateAuthUI();
+    }
+
+    toolbarBtn?.addEventListener('click',()=>openAuth(currentUser?'login':'login'));
+    closeBtn?.addEventListener('click',closeAuth);
+    loginTab?.addEventListener('click',()=>setMode('login'));
+    registerTab?.addEventListener('click',()=>setMode('register'));
+    modal?.addEventListener('click',e=>{if(e.target===modal)closeAuth()});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'&&modal?.classList.contains('show'))closeAuth()});
+
+    loginForm?.addEventListener('submit',async e=>{
+        e.preventDefault();setMessage('');setLoading(loginForm,true);
+        const fd=new FormData(loginForm);
+        try{
+            const data=await api('/api/auth/login',{method:'POST',body:JSON.stringify({email:fd.get('email'),password:fd.get('password')})});
+            currentUser=data.user;updateAuthUI();setMessage('تم تسجيل الدخول بنجاح.','success');
+            setTimeout(closeAuth,650);
+        }catch(err){setMessage(err.message,'error')}
+        finally{setLoading(loginForm,false)}
+    });
+
+    registerForm?.addEventListener('submit',async e=>{
+        e.preventDefault();setMessage('');setLoading(registerForm,true);
+        const fd=new FormData(registerForm);
+        try{
+            const data=await api('/api/auth/register',{method:'POST',body:JSON.stringify({name:fd.get('name'),email:fd.get('email'),password:fd.get('password')})});
+            currentUser=data.user;updateAuthUI();setMessage('تم إنشاء الحساب وتسجيل الدخول.','success');registerForm.reset();
+            setTimeout(closeAuth,700);
+        }catch(err){setMessage(err.message,'error')}
+        finally{setLoading(registerForm,false)}
+    });
+
+    logoutBtn?.addEventListener('click',async()=>{
+        try{await api('/api/auth/logout',{method:'POST'});currentUser=null;updateAuthUI();setMessage('تم تسجيل الخروج.','success');setMode('login');}
+        catch(err){setMessage(err.message,'error')}
+    });
+
+    refreshUser();
+})();
+
+/* DROWSINESS WARNING OVERLAY CONTROLLER — presentation only */
+(function(){
+    'use strict';
+    const overlay=document.getElementById('drowsinessWarningOverlay');
+    const alarmWarning=document.getElementById('alarmWarning');
+    if(!overlay || !alarmWarning)return;
+    function sync(){
+        const active=alarmWarning.classList.contains('show');
+        overlay.classList.toggle('show',active);
+        overlay.setAttribute('aria-hidden',active?'false':'true');
+    }
+    new MutationObserver(sync).observe(alarmWarning,{attributes:true,attributeFilter:['class']});
+    sync();
+})();
+</script>
+
+<script>
+window.__antiSleepPwaRegistration=true;
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));}
+</script>
+</body>
+</html>
