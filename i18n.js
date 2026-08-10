@@ -88,8 +88,45 @@
     'Language': { ar:'اللغة', fr:'Langue' }
   };
 
-  Object.assign(T.ar, Object.fromEntries(Object.entries(EN_STATIC).map(([key, value]) => [key, value.ar])));
-  for (const lang of ['en','fr']) Object.assign(T[lang], EN_STATIC);
+  // EN_STATIC is a small dictionary for source strings that were originally
+  // written in English. IMPORTANT: never put the EN_STATIC objects themselves
+  // into T[lang], otherwise DOM textContent receives an object and renders
+  // "[object Object]". Each language must contain a plain string only.
+  for (const [key, value] of Object.entries(EN_STATIC)) {
+    T.ar[key] = value.ar ?? key;
+    T.en[key] = value.en ?? key;
+    T.fr[key] = value.fr ?? key;
+  }
+
+  // Dynamic UI strings that are produced by the monitoring engine.
+  const EXTRA = {
+    'الوضع المختصر': { ar:'الوضع المختصر', en:'Compact mode', fr:'Mode compact' },
+    'الوضع الذكي': { ar:'الوضع الذكي', en:'Smart mode', fr:'Mode intelligent' },
+    'الوضع نشط': { ar:'الوضع نشط', en:'Mode active', fr:'Mode actif' },
+    'جاهز للمراقبة': { ar:'جاهز للمراقبة', en:'Ready for monitoring', fr:'Prêt pour la surveillance' },
+    'جاهز': { ar:'جاهز', en:'Ready', fr:'Prêt' },
+    'تشغيل': { ar:'تشغيل', en:'Running', fr:'En cours' },
+    'مكتشف': { ar:'مكتشف', en:'Detected', fr:'Détecté' },
+    'انتظار': { ar:'انتظار', en:'Waiting', fr:'En attente' },
+    'مستقر': { ar:'مستقر', en:'Stable', fr:'Stable' },
+    'غير نشط': { ar:'غير نشط', en:'Inactive', fr:'Inactif' },
+    'الشاشة مستيقظة': { ar:'الشاشة مستيقظة', en:'Screen awake', fr:'Écran actif' },
+    'في انتظار التركيز': { ar:'في انتظار التركيز', en:'Waiting for focus', fr:'En attente du focus' },
+    'في انتظار العودة': { ar:'في انتظار العودة', en:'Waiting to return', fr:'En attente du retour' },
+    'في الخلفية': { ar:'في الخلفية', en:'In background', fr:'En arrière-plan' },
+    'تم التحرير مؤقتاً': { ar:'تم التحرير مؤقتاً', en:'Temporarily released', fr:'Libéré temporairement' },
+    'تعذر التفعيل': { ar:'تعذر التفعيل', en:'Activation failed', fr:'Échec de l’activation' },
+    'غير مدعوم': { ar:'غير مدعوم', en:'Unsupported', fr:'Non pris en charge' },
+    'غير متاح': { ar:'غير متاح', en:'Unavailable', fr:'Indisponible' },
+    'متصل': { ar:'متصل', en:'Connected', fr:'Connecté' },
+    'خطأ': { ar:'خطأ', en:'Error', fr:'Erreur' },
+    'تم بدء جلسة المراقبة': { ar:'تم بدء جلسة المراقبة', en:'Monitoring session started', fr:'Session de surveillance démarrée' },
+    'تم إنهاء جلسة المراقبة': { ar:'تم إنهاء جلسة المراقبة', en:'Monitoring session ended', fr:'Session de surveillance terminée' },
+    'موقع الإنذار جاهز! اضغط "بدء الكاميرا".': { ar:'موقع الإنذار جاهز! اضغط "بدء الكاميرا".', en:'Alarm system ready! Press "Start camera".', fr:'Système d’alerte prêt ! Appuyez sur "Démarrer la caméra".' }
+  };
+  for (const [key, value] of Object.entries(EXTRA)) {
+    T.ar[key] = value.ar; T.en[key] = value.en; T.fr[key] = value.fr;
+  }
 
   // Keep a canonical source for every translated text node/attribute.
   const originalText = new WeakMap();
@@ -105,19 +142,94 @@
     return String(value ?? '').replace(/\s+/g, ' ').trim();
   }
 
+  const reverseMap = new Map();
+
+  function rebuildReverseMap() {
+    reverseMap.clear();
+    const allKeys = new Set([
+      ...Object.keys(T.ar || {}),
+      ...Object.keys(T.en || {}),
+      ...Object.keys(T.fr || {}),
+      ...Object.keys(EN_STATIC || {}),
+      ...Object.keys(EXTRA || {})
+    ]);
+    for (const key of allKeys) {
+      const candidates = [
+        key,
+        T.ar?.[key],
+        T.en?.[key],
+        T.fr?.[key],
+        EN_STATIC?.[key]?.ar,
+        EN_STATIC?.[key]?.en,
+        EN_STATIC?.[key]?.fr,
+        EXTRA?.[key]?.ar,
+        EXTRA?.[key]?.en,
+        EXTRA?.[key]?.fr
+      ];
+      for (const candidate of candidates) {
+        if (candidate == null || typeof candidate !== 'string') continue;
+        const normalized = normalize(candidate);
+        if (normalized) reverseMap.set(normalized, key);
+      }
+    }
+  }
+
+  // Guarantee that every key exists in every language as a plain string.
+  // This prevents missing-key crashes and keeps language switching reversible.
+  const ALL_TRANSLATION_KEYS = new Set([...Object.keys(T.ar), ...Object.keys(T.en), ...Object.keys(T.fr)]);
+  for (const key of ALL_TRANSLATION_KEYS) {
+    if (typeof T.ar[key] !== 'string') T.ar[key] = key;
+    if (typeof T.en[key] !== 'string') T.en[key] = T.en[key] == null ? key : String(T.en[key]);
+    if (typeof T.fr[key] !== 'string') T.fr[key] = T.fr[key] == null ? (T.en[key] || key) : String(T.fr[key]);
+  }
+
+  rebuildReverseMap();
+
   function translateString(value, lang = currentLang()) {
     if (value == null || value === '') return value;
+
+    // Never allow an object to reach a DOM text node. This is the exact cause
+    // of the previous "[object Object]" rendering bug.
+    if (typeof value === 'object') {
+      if (typeof value[lang] === 'string') return value[lang];
+      if (typeof value.en === 'string') return value.en;
+      if (typeof value.fr === 'string') return value.fr;
+      if (typeof value.ar === 'string') return value.ar;
+      return '';
+    }
+
     const raw = String(value);
     const key = normalize(raw);
-    if (T[lang]?.[key] != null) return T[lang][key];
+    const canonicalKey = reverseMap.get(key) || key;
+    const translated = T[lang]?.[canonicalKey];
 
+    if (typeof translated === 'string' && translated.length) return translated;
+
+    // Mixed/dynamic strings: translate known fragments while preserving numbers
+    // and runtime values such as "12.4 FPS" or "🚨 2 • ...".
     let out = raw;
-    // Dynamic units and mixed numeric strings.
+    const candidates = [];
+    for (const canonical of Object.keys(T.ar || {})) {
+      const variants = [canonical, T.ar?.[canonical], T.en?.[canonical], T.fr?.[canonical]];
+      for (const variant of variants) {
+        if (typeof variant === 'string' && normalize(variant).length > 1) {
+          candidates.push([String(variant), T[lang]?.[canonical]]);
+        }
+      }
+    }
+    candidates.sort((a,b) => b[0].length - a[0].length);
+    for (const [source, target] of candidates) {
+      if (typeof target !== 'string' || !target || source === target) continue;
+      if (out.includes(source)) out = out.split(source).join(target);
+    }
+
+    // Dynamic units.
     if (/\d[\d.,]*\s*ث/.test(out)) out = out.replace(/(\d[\d.,]*)\s*ث/g, '$1 s');
     if (/\d[\d.,]*\s*د/.test(out)) out = out.replace(/(\d[\d.,]*)\s*د/g, '$1 min');
     if (/\d[\d.,]*\s*س/.test(out)) out = out.replace(/(\d[\d.,]*)\s*س/g, '$1 h');
     if (/\/\s*دقيقة/.test(out)) out = out.replace(/\/\s*دقيقة/g, '/ min');
     if (out.startsWith('عتبة تكيفية:')) out = out.replace('عتبة تكيفية:', lang === 'fr' ? 'Seuil adaptatif :' : 'Adaptive threshold:');
+
     return out;
   }
 
