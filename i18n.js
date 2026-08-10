@@ -264,7 +264,16 @@
         let bag = originalAttr.get(el);
         if (!bag) { bag = {}; originalAttr.set(el, bag); }
         if (bag[attr] == null) bag[attr] = el.getAttribute(attr);
-        el.setAttribute(attr, translateString(bag[attr], lang));
+
+        // IMPORTANT:
+        // Only write the attribute when its translated value is actually
+        // different. Otherwise MutationObserver can observe its own
+        // setAttribute() call forever and freeze the application when
+        // switching languages.
+        const translated = translateString(bag[attr], lang);
+        if (el.getAttribute(attr) !== translated) {
+          el.setAttribute(attr, translated);
+        }
       }
     });
   }
@@ -314,12 +323,15 @@
     if (!SUPPORTED.includes(lang)) lang = DEFAULT_LANG;
     if (persist) localStorage.setItem(LANG_KEY, lang);
     applying = true;
-    updateDirection(lang);
-    walk(document.body, lang);
-    translateAttributes(document.documentElement, lang);
-    updateMeta(lang);
-    updateLanguageButtons(lang);
-    applying = false;
+    try {
+      updateDirection(lang);
+      walk(document.body, lang);
+      translateAttributes(document.documentElement, lang);
+      updateMeta(lang);
+      updateLanguageButtons(lang);
+    } finally {
+      applying = false;
+    }
     window.dispatchEvent(new CustomEvent('antiSleepLanguageChanged', { detail: { lang } }));
   }
 
