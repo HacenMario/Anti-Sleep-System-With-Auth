@@ -80,6 +80,15 @@ const User = mongoose.model('User', userSchema);
 
 const monitoringSessionSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
+  clientSessionId: {
+    type: String,
+    default: () => new mongoose.Types.ObjectId().toString(),
+    unique: true,
+    index: true,
+    trim: true,
+    minlength: 8,
+    maxlength: 100
+  },
   startedAt: { type: Date, required: true },
   endedAt: { type: Date, required: true },
   durationSeconds: { type: Number, required: true, min: 1, max: 86400 },
@@ -377,63 +386,103 @@ app.patch('/api/auth/settings', dataLimiter, requireAuth, async (req, res) => {
 // Save only privacy-safe session statistics.
 app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
   try {
-    if (mongoose.connection.readyState !== 1) {
-      return res.status(503).json({
-        message: 'قاعدة البيانات غير متاحة حاليًا. حاول مرة أخرى بعد لحظات.'
+    const durationSeconds = Math.round(
+      Number(req.body.durationSeconds)
+    );
+
+    const alertCount = Math.round(
+      Number(req.body.alertCount)
+    );
+
+    const alertSeconds = Number(
+      req.body.alertSeconds
+    );
+
+    const completed = req.body.completed !== false;
+
+    const optionalNumber = (value, min, max) => {
+      if (value === null || value === undefined || value === '') {
+        return null;
+      }
+
+      const n = Number(value);
+
+      return Number.isFinite(n) && n >= min && n <= max
+        ? n
+        : NaN;
+    };
+
+    const avgEar = optionalNumber(req.body.avgEar, 0, 2);
+    const minEar = optionalNumber(req.body.minEar, 0, 2);
+    const perclos = optionalNumber(req.body.perclos, 0, 100);
+    const riskScore = optionalNumber(req.body.riskScore, 0, 100);
+
+    if (
+      !Number.isFinite(durationSeconds) ||
+      durationSeconds < 1 ||
+      durationSeconds > 86400
+    ) {
+      return res.status(400).json({
+        message: 'مدة الجلسة غير صالحة.'
       });
     }
 
-    const durationSeconds = Math.round(Number(req.body?.durationSeconds));
-    const alertCount = Math.round(Number(req.body?.alertCount));
-    const rawAlertSeconds = Number(req.body?.alertSeconds);
-    const completed = req.body?.completed !== false;
-
-    const optionalNumber = (value, min, max) => {
-      if (value === null || value === undefined || value === '') return null;
-      const n = Number(value);
-      return Number.isFinite(n) && n >= min && n <= max ? n : NaN;
-    };
-
-    const avgEar = optionalNumber(req.body?.avgEar, 0, 2);
-    const minEar = optionalNumber(req.body?.minEar, 0, 2);
-    const perclos = optionalNumber(req.body?.perclos, 0, 100);
-    const riskScore = optionalNumber(req.body?.riskScore, 0, 100);
-
-    if (!Number.isFinite(durationSeconds) || durationSeconds < 1 || durationSeconds > 86400) {
-      return res.status(400).json({ message: 'مدة الجلسة غير صالحة.' });
+    if (
+      !Number.isFinite(alertCount) ||
+      alertCount < 0 ||
+      alertCount > 10000
+    ) {
+      return res.status(400).json({
+        message: 'عدد التنبيهات غير صالح.'
+      });
     }
 
-    if (!Number.isFinite(alertCount) || alertCount < 0 || alertCount > 10000) {
-      return res.status(400).json({ message: 'عدد التنبيهات غير صالح.' });
+    if (
+      !Number.isFinite(alertSeconds) ||
+      alertSeconds < 0 ||
+      alertSeconds > durationSeconds
+    ) {
+      return res.status(400).json({
+        message: 'مدة التنبيه غير صالحة.'
+      });
     }
 
-    if (!Number.isFinite(rawAlertSeconds) || rawAlertSeconds < 0) {
-      return res.status(400).json({ message: 'مدة التنبيه غير صالحة.' });
+    if (
+      [avgEar, minEar, perclos, riskScore]
+        .some(Number.isNaN)
+    ) {
+      return res.status(400).json({
+        message: 'بيانات التحليل غير صالحة.'
+      });
     }
 
-    if ([avgEar, minEar, perclos, riskScore].some(Number.isNaN)) {
-      return res.status(400).json({ message: 'بيانات التحليل غير صالحة.' });
-    }
+    const clientSessionId = String(
+      req.body.clientSessionId || new mongoose.Types.ObjectId().toString()
+    ).trim();
 
-    // The browser measures elapsed time and alert time independently. A
-    // rounding difference of a fraction of a second can make alertSeconds
-    // slightly larger than durationSeconds, so normalize instead of failing
-    // the whole session save.
-    const alertSeconds = Math.min(
-      Number(rawAlertSeconds.toFixed(1)),
-      Number(durationSeconds)
-    );
+    if (
+      clientSessionId.length < 8 ||
+      clientSessionId.length > 100
+    ) {
+      return res.status(400).json({
+        message: 'معرف جلسة المراقبة غير صالح.'
+      });
+    }
 
     const endedAt = new Date();
-    const startedAt = new Date(endedAt.getTime() - durationSeconds * 1000);
+
+    const startedAt = new Date(
+      endedAt.getTime() - durationSeconds * 1000
+    );
 
     const session = await MonitoringSession.create({
       userId: req.user._id,
+      clientSessionId,
       startedAt,
       endedAt,
       durationSeconds,
       alertCount,
-      alertSeconds,
+      alertSeconds: Number(alertSeconds.toFixed(1)),
       avgEar: avgEar === null ? null : Number(avgEar.toFixed(4)),
       minEar: minEar === null ? null : Number(minEar.toFixed(4)),
       perclos: perclos === null ? null : Number(perclos.toFixed(1)),
@@ -441,7 +490,7 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
       completed
     });
 
-    return res.status(201).json({
+    res.status(201).json({
       ok: true,
       session: {
         id: String(session._id),
@@ -459,36 +508,29 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Session save failed:', {
-      name: err?.name,
-      message: err?.message,
-      code: err?.code,
-      codeName: err?.codeName,
-      errors: err?.errors ? Object.fromEntries(
-        Object.entries(err.errors).map(([key, value]) => [key, value?.message || String(value)])
-      ) : undefined
-    });
+    console.error('Session save failed:', err);
 
-    if (err?.name === 'ValidationError' || err?.name === 'CastError') {
-      return res.status(400).json({
-        message: 'بيانات جلسة المراقبة غير صالحة.'
-      });
+    if (err && err.code === 11000) {
+      const duplicateKey = err.keyPattern || err.keyValue || {};
+
+      if (
+        duplicateKey.clientSessionId ||
+        duplicateKey.clientSessionId === null
+      ) {
+        return res.status(409).json({
+          message: 'جلسة المراقبة موجودة مسبقًا.'
+        });
+      }
     }
 
-    if (err?.code === 11000) {
-      return res.status(409).json({
-        message: 'جلسة المراقبة موجودة مسبقًا.'
-      });
-    }
-
-    return res.status(500).json({
+    res.status(500).json({
       message: 'تعذر حفظ جلسة المراقبة حاليًا.'
     });
   }
 });
 
 
-app.get('/api/data/sessions' , dataLimiter, requireAuth, async (req, res) => {
+app.get('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
   try {
     let limit = Number.parseInt(req.query.limit, 10);
 
