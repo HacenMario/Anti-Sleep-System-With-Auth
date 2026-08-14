@@ -1934,7 +1934,8 @@ input[type="range"]{direction:ltr}
                     event.preventDefault();
                     setFullscreen();
                 }
-                if (event.key.toLowerCase() === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
+                const pressedKey = typeof event?.key === 'string' ? event.key.toLowerCase() : '';
+                if (pressedKey === 'c' && !event.ctrlKey && !event.altKey && !event.metaKey) {
                     compactBtn?.click();
                 }
             });
