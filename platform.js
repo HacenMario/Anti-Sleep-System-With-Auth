@@ -40,7 +40,10 @@
     for(const item of items){
       try{
         const res=await fetch('/api/data/sessions',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(item.payload)});
-        if(res.status===401){await queueDelete(item.id);continue;}
+        if(res.status===401||res.status===400||res.status===404||res.status===422){
+          await queueDelete(item.id);
+          continue;
+        }
         if(!res.ok)throw new Error('HTTP '+res.status);
         await queueDelete(item.id);synced++;
       }catch(e){
@@ -67,7 +70,14 @@
       if(!navigator.onLine){await queuePut(enriched);notify(t('تم حفظ الجلسة محليًا وسيتم مزامنتها لاحقًا','Session saved locally and will sync later'));return;}
       try{
         const res=await fetch('/api/data/sessions',{method:'POST',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(enriched)});
-        if(!res.ok){if(res.status>=500||res.status===429)throw new Error('HTTP '+res.status);return;}
+        if(!res.ok){
+          if(res.status===401||res.status===400||res.status===404||res.status===422){
+            notify(t('تعذر حفظ الجلسة: البيانات غير صالحة أو انتهت جلسة الدخول','Session was not saved: invalid data or expired login session'));
+            return;
+          }
+          if(res.status>=500||res.status===429)throw new Error('HTTP '+res.status);
+          return;
+        }
         await refreshQueueUI();
       }catch(e){
         await queuePut(enriched);
@@ -224,6 +234,6 @@
     setInterval(()=>{if($('platformModal')?.classList.contains('show')){refreshSettings();$('diagFpsPlatform').textContent=$('fpsValue')?.textContent||'--';$('diagQualityPlatform').textContent=$('qualityPercent')?.textContent||'--';$('diagEyePlatform').textContent=$('eyeState')?.textContent||'--';}},1000);
   }
 
-  async function init(){injectStyles();injectUI();bind();refreshAll();installSessionQueueHook();setTimeout(installSessionQueueHook,500);setTimeout(installSessionQueueHook,1500);syncQueue();}
+  async function init(){injectStyles();injectUI();bind();refreshAll();installSessionQueueHook();setTimeout(installSessionQueueHook,500);setTimeout(installSessionQueueHook,1500);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
