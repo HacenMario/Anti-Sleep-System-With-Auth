@@ -377,81 +377,55 @@ app.patch('/api/auth/settings', dataLimiter, requireAuth, async (req, res) => {
 // Save only privacy-safe session statistics.
 app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
   try {
-    const durationSeconds = Math.round(
-      Number(req.body.durationSeconds)
-    );
+    if (mongoose.connection.readyState !== 1) {
+      return res.status(503).json({
+        message: 'قاعدة البيانات غير متاحة حاليًا. حاول مرة أخرى بعد لحظات.'
+      });
+    }
 
-    const alertCount = Math.round(
-      Number(req.body.alertCount)
-    );
-
-    const alertSeconds = Number(
-      req.body.alertSeconds
-    );
-
-    const completed = req.body.completed !== false;
+    const durationSeconds = Math.round(Number(req.body?.durationSeconds));
+    const alertCount = Math.round(Number(req.body?.alertCount));
+    const rawAlertSeconds = Number(req.body?.alertSeconds);
+    const completed = req.body?.completed !== false;
 
     const optionalNumber = (value, min, max) => {
-      if (value === null || value === undefined || value === '') {
-        return null;
-      }
-
+      if (value === null || value === undefined || value === '') return null;
       const n = Number(value);
-
-      return Number.isFinite(n) && n >= min && n <= max
-        ? n
-        : NaN;
+      return Number.isFinite(n) && n >= min && n <= max ? n : NaN;
     };
 
-    const avgEar = optionalNumber(req.body.avgEar, 0, 2);
-    const minEar = optionalNumber(req.body.minEar, 0, 2);
-    const perclos = optionalNumber(req.body.perclos, 0, 100);
-    const riskScore = optionalNumber(req.body.riskScore, 0, 100);
+    const avgEar = optionalNumber(req.body?.avgEar, 0, 2);
+    const minEar = optionalNumber(req.body?.minEar, 0, 2);
+    const perclos = optionalNumber(req.body?.perclos, 0, 100);
+    const riskScore = optionalNumber(req.body?.riskScore, 0, 100);
 
-    if (
-      !Number.isFinite(durationSeconds) ||
-      durationSeconds < 1 ||
-      durationSeconds > 86400
-    ) {
-      return res.status(400).json({
-        message: 'مدة الجلسة غير صالحة.'
-      });
+    if (!Number.isFinite(durationSeconds) || durationSeconds < 1 || durationSeconds > 86400) {
+      return res.status(400).json({ message: 'مدة الجلسة غير صالحة.' });
     }
 
-    if (
-      !Number.isFinite(alertCount) ||
-      alertCount < 0 ||
-      alertCount > 10000
-    ) {
-      return res.status(400).json({
-        message: 'عدد التنبيهات غير صالح.'
-      });
+    if (!Number.isFinite(alertCount) || alertCount < 0 || alertCount > 10000) {
+      return res.status(400).json({ message: 'عدد التنبيهات غير صالح.' });
     }
 
-    if (
-      !Number.isFinite(alertSeconds) ||
-      alertSeconds < 0 ||
-      alertSeconds > durationSeconds
-    ) {
-      return res.status(400).json({
-        message: 'مدة التنبيه غير صالحة.'
-      });
+    if (!Number.isFinite(rawAlertSeconds) || rawAlertSeconds < 0) {
+      return res.status(400).json({ message: 'مدة التنبيه غير صالحة.' });
     }
 
-    if (
-      [avgEar, minEar, perclos, riskScore]
-        .some(Number.isNaN)
-    ) {
-      return res.status(400).json({
-        message: 'بيانات التحليل غير صالحة.'
-      });
+    if ([avgEar, minEar, perclos, riskScore].some(Number.isNaN)) {
+      return res.status(400).json({ message: 'بيانات التحليل غير صالحة.' });
     }
+
+    // The browser measures elapsed time and alert time independently. A
+    // rounding difference of a fraction of a second can make alertSeconds
+    // slightly larger than durationSeconds, so normalize instead of failing
+    // the whole session save.
+    const alertSeconds = Math.min(
+      Number(rawAlertSeconds.toFixed(1)),
+      Number(durationSeconds)
+    );
 
     const endedAt = new Date();
-
-    const startedAt = new Date(
-      endedAt.getTime() - durationSeconds * 1000
-    );
+    const startedAt = new Date(endedAt.getTime() - durationSeconds * 1000);
 
     const session = await MonitoringSession.create({
       userId: req.user._id,
@@ -459,7 +433,7 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
       endedAt,
       durationSeconds,
       alertCount,
-      alertSeconds: Number(alertSeconds.toFixed(1)),
+      alertSeconds,
       avgEar: avgEar === null ? null : Number(avgEar.toFixed(4)),
       minEar: minEar === null ? null : Number(minEar.toFixed(4)),
       perclos: perclos === null ? null : Number(perclos.toFixed(1)),
@@ -467,7 +441,7 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
       completed
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       ok: true,
       session: {
         id: String(session._id),
@@ -485,16 +459,36 @@ app.post('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
     });
 
   } catch (err) {
-    console.error('Session save failed:', err);
+    console.error('Session save failed:', {
+      name: err?.name,
+      message: err?.message,
+      code: err?.code,
+      codeName: err?.codeName,
+      errors: err?.errors ? Object.fromEntries(
+        Object.entries(err.errors).map(([key, value]) => [key, value?.message || String(value)])
+      ) : undefined
+    });
 
-    res.status(500).json({
+    if (err?.name === 'ValidationError' || err?.name === 'CastError') {
+      return res.status(400).json({
+        message: 'بيانات جلسة المراقبة غير صالحة.'
+      });
+    }
+
+    if (err?.code === 11000) {
+      return res.status(409).json({
+        message: 'جلسة المراقبة موجودة مسبقًا.'
+      });
+    }
+
+    return res.status(500).json({
       message: 'تعذر حفظ جلسة المراقبة حاليًا.'
     });
   }
 });
 
 
-app.get('/api/data/sessions', dataLimiter, requireAuth, async (req, res) => {
+app.get('/api/data/sessions' , dataLimiter, requireAuth, async (req, res) => {
   try {
     let limit = Number.parseInt(req.query.limit, 10);
 
